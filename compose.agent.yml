@@ -1,0 +1,27 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    restart: unless-stopped
+    volumes:
+      - agent_workspace:/workspace
+      - agent_codex:/home/agent/.codex
+      - agent_cache:/home/agent/.cache
+      - agent_config:/home/agent/.config
+    networks:
+      - agent_net
+
+volumes:
+  agent_workspace:
+  agent_codex:
+  agent_cache:
+  agent_config:
+
+networks:
+  agent_net:
+    driver: bridge
