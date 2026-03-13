@@ -23,7 +23,10 @@ alias ll='ls -alF'
 EOF
 fi
 
-install -m 0644 /opt/codex-agent/AGENTS.md /workspace/AGENTS.md
+# Seed existing volumes that predate the baked-in workspace baseline.
+if [[ ! -f /workspace/AGENTS.md ]]; then
+    install -m 0644 /opt/codex-agent/AGENTS.md /workspace/AGENTS.md
+fi
 
 for tool in node npm dotnet gh; do
     version="$($tool --version 2>/dev/null | head -n 1 || true)"
