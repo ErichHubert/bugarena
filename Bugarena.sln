@@ -5,11 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E1A76454-A954-4237-9760-9F2942ECD70B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapabilityProvider", "src\CapabilityProvider\CapabilityProvider.csproj", "{25DD8C24-0A47-4244-BF15-956B8C9EBDA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapabilityBroker", "src\CapabilityBroker\CapabilityBroker.csproj", "{25DD8C24-0A47-4244-BF15-956B8C9EBDA1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8DD17346-3FBD-4582-83CC-EDA9C0839948}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapabilityProvider.Tests", "tests\CapabilityProvider.Tests\CapabilityProvider.Tests.csproj", "{7CFE94CD-EBDC-4888-8650-8C2997E6650D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapabilityBroker.Tests", "tests\CapabilityBroker.Tests\CapabilityBroker.Tests.csproj", "{7CFE94CD-EBDC-4888-8650-8C2997E6650D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

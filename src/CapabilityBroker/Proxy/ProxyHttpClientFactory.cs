@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace CapabilityProvider.Proxy;
+namespace CapabilityBroker.Proxy;
 
 public sealed class ProxyHttpClientFactory : IDisposable
 {

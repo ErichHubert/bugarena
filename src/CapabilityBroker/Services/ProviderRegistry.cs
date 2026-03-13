@@ -1,8 +1,8 @@
-using CapabilityProvider.Models;
-using CapabilityProvider.Options;
+using CapabilityBroker.Models;
+using CapabilityBroker.Options;
 using Microsoft.Extensions.Options;
 
-namespace CapabilityProvider.Services;
+namespace CapabilityBroker.Services;
 
 public sealed class ProviderRegistry : IProviderRegistry
 {

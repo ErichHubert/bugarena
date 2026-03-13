@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace CapabilityProvider.Services;
+namespace CapabilityBroker.Services;
 
 public sealed class CapabilityBrokerReadinessHealthCheck : IHealthCheck
 {
@@ -33,6 +33,6 @@ public sealed class CapabilityBrokerReadinessHealthCheck : IHealthCheck
             }
         }
 
-        return Task.FromResult(HealthCheckResult.Healthy("Capability provider is ready."));
+        return Task.FromResult(HealthCheckResult.Healthy("Capability broker is ready."));
     }
 }

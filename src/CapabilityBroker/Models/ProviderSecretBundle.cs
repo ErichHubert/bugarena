@@ -1,4 +1,4 @@
-namespace CapabilityProvider.Models;
+namespace CapabilityBroker.Models;
 
 public sealed class ProviderSecretBundle
 {

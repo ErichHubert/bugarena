@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CapabilityProvider\CapabilityProvider.csproj" />
+    <ProjectReference Include="..\..\src\CapabilityBroker\CapabilityBroker.csproj" />
   </ItemGroup>
 
 </Project>

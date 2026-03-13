@@ -10,9 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
-namespace CapabilityProvider.Tests;
+namespace CapabilityBroker.Tests;
 
-public sealed class CapabilityProviderProxyTests
+public sealed class CapabilityBrokerProxyTests
 {
     [Fact]
     public async Task ForwardsAllowedRequestAndInjectsBearerTokenAsync()

@@ -1,11 +1,11 @@
-using CapabilityProvider.Models;
-using CapabilityProvider.Options;
-using CapabilityProvider.Services;
+using CapabilityBroker.Models;
+using CapabilityBroker.Options;
+using CapabilityBroker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Forwarder;
 
-namespace CapabilityProvider.Proxy;
+namespace CapabilityBroker.Proxy;
 
 public sealed class ProviderProxyService
 {

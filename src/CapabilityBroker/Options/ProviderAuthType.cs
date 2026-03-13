@@ -1,4 +1,4 @@
-namespace CapabilityProvider.Options;
+namespace CapabilityBroker.Options;
 
 public enum ProviderAuthType
 {
