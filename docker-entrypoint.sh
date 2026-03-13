@@ -6,7 +6,7 @@ echo "READ /workspace/AGENTS.md BEFORE ANYTHING."
 
 mkdir -p "$HOME/.config" "$HOME/.codex" "$HOME/.cache" /workspace
 
-git config --global user.name "Codex Agent"
+git config --global user.name "coding.agent.luffy"
 git config --global user.email "YOUR_GITHUB_ID+YOUR_GITHUB_USERNAME@users.noreply.github.com"
 git config --global init.defaultBranch main
 git config --global pull.rebase false
