@@ -1,26 +1,24 @@
 # Template: Implementation checklist
 
-Use this for handoff summaries and PR descriptions.
+Use for handoff notes and the PR body.
 
-## Intent
-- what was built/changed
-- why this approach was chosen
+## Summary
+- what changed
+- why
 
-## Files changed
-- list files by area
+## Architecture
+- key boundary or pattern choice
+- notable file sizing or class layout decisions
 
-## Key design choices
-- Pattern B or not
-- broker/proxy usage
-- secret handling path
-- env split
-
-## Validation run
+## Validation
 - commands actually executed
-- notable outputs/results
-- what was not validated
+- result
+- gaps
 
-## Risks / follow-ups
-- remaining gaps
-- next hardening step
-- missing tests/docs if any
+## Docs
+- docs updated
+
+## PR
+- meaningful title
+- meaningful description
+- created with `gh pr create`
