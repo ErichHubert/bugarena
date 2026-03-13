@@ -1,6 +1,6 @@
 # AGENTS.md
 
-READ `/home/agent/.config/AGENTS.md` BEFORE ANYTHING (skip if missing).
+READ `/home/agent/.config/AGENTS.md` and `/agent/templates` BEFORE ANYTHING (skip if missing).
 
 Repo rules only. Style: telegraph; low filler; min tokens.
 

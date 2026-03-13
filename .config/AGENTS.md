@@ -26,4 +26,3 @@ READ THIS FIRST. Container baseline. Style: telegraph; low filler; min tokens.
 ## Rule Split
 - `/home/agent/.config/AGENTS.md` is the home baseline.
 - If the repo has its own `AGENTS.md`, read that after this file.
-- No `/workspace/AGENTS.md` is created.
