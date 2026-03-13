@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 echo "Initializing Codex agent container..."
-echo "READ /workspace/AGENTS.md BEFORE ANYTHING."
+echo "READ /home/agent/.config/AGENTS.md BEFORE ANYTHING."
 
 mkdir -p "$HOME/.config" "$HOME/.codex" "$HOME/.cache" /workspace
 
@@ -23,10 +23,9 @@ alias ll='ls -alF'
 EOF
 fi
 
-# Seed existing volumes that predate the baked-in workspace baseline.
-if [[ ! -f /workspace/AGENTS.md ]]; then
-    install -m 0644 /opt/codex-agent/AGENTS.md /workspace/AGENTS.md
-fi
+if [[ ! -s "$HOME/.config/AGENTS.md" ]]; then
+    install -m 0644 /opt/codex-agent/AGENTS.md "$HOME/.config/AGENTS.md"
+fi 
 
 for tool in node npm dotnet gh; do
     version="$($tool --version 2>/dev/null | head -n 1 || true)"

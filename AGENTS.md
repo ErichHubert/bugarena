@@ -1,6 +1,6 @@
 # AGENTS.md
 
-READ `/workspace/AGENTS.md` BEFORE ANYTHING (skip if missing).
+READ `/home/agent/.config/AGENTS.md` BEFORE ANYTHING (skip if missing).
 
 Repo rules only. Style: telegraph; low filler; min tokens.
 
