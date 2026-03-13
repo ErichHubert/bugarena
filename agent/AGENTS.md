@@ -86,7 +86,7 @@ When implementing integration with external providers:
 - Prefer examples over long explanations.
 
 ## Templates
-Use the templates in `.codex-templates/` when relevant. They provide preferred structure and naming for:
+Use the templates in `agent/templates/` when relevant. They provide preferred structure and naming for:
 - external provider integration via Pattern B
 - CapabilityBroker provider policy/config
 - Docker agent container / compose setup

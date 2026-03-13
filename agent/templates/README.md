@@ -1,4 +1,4 @@
-# .codex-templates
+# agent/templates
 
 These templates are support material for Codex. They are intentionally more detailed than `AGENTS.md` so the policy file can stay short.
 
