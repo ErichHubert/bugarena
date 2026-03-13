@@ -4,7 +4,8 @@ This repository contains the Phase 1 local agent container scaffold: an isolated
 
 The guidance is split into two layers:
 - `/workspace/AGENTS.md` is seeded by the container and describes the container environment.
-- each cloned repo should provide its own repo-root `AGENTS.md` for project-specific rules.
+- each cloned repo should provide its own repo-root `AGENTS.md` for project-specific rules
+- repo-root `AGENTS.md` should start with `READ /workspace/AGENTS.md BEFORE ANYTHING (skip if missing).`
 
 ## Build and start
 
@@ -26,7 +27,7 @@ Open a shell inside the container:
 docker compose -f compose.agent.yml exec agent bash
 ```
 
-On container start, the entrypoint writes the container baseline instructions to `/workspace/AGENTS.md`.
+On container start, the entrypoint writes the container baseline instructions to `/workspace/AGENTS.md` and prints a reminder to read it first.
 
 ## Authenticate tools
 
@@ -59,7 +60,7 @@ cd /workspace/REPO
 codex
 ```
 
-If the cloned repository has its own root `AGENTS.md`, Codex can use that alongside the container baseline in `/workspace/AGENTS.md`.
+If the cloned repository has its own root `AGENTS.md`, Codex should read `/workspace/AGENTS.md` first and then the repo-root file.
 
 Standard .NET workflows run normally from there:
 

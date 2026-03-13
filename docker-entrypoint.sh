@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 
 echo "Initializing Codex agent container..."
+echo "READ /workspace/AGENTS.md BEFORE ANYTHING."
 
 mkdir -p "$HOME/.config" "$HOME/.codex" "$HOME/.cache" /workspace
 

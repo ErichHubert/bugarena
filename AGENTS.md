@@ -1,11 +1,12 @@
 # AGENTS.md
 
-Repo rules for this codebase. Style: telegraph; low filler; min tokens.
+READ `/workspace/AGENTS.md` BEFORE ANYTHING (skip if missing).
+
+Repo rules only. Style: telegraph; low filler; min tokens.
 
 ## Workflow
-- Use `gh` for GitHub work: PRs, review, CI checks.
-- Default flow: inspect -> branch -> implement -> test -> commit -> `gh pr create`.
-- Keep commits small and reviewable.
+- Use `gh` for GitHub work.
+- Small, reviewable commits.
 - No direct push to `main` or `master`.
 - No history rewrite unless asked.
 

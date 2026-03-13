@@ -1,22 +1,28 @@
 # AGENTS.md
 
-Container baseline for Codex. Style: telegraph; low filler; min tokens.
+READ THIS FIRST. Container baseline. Style: telegraph; low filler; min tokens.
 
-## Agent Protocol
-- Workspace: `/workspace`. Treat as isolated dev workstation.
-- First checks in a repo: `git status`, current branch, `gh auth status`.
-- GitHub: use `gh` for auth, clone, PRs, PR review, and CI.
+## Baseline
+- Workspace: `/workspace`.
+- Treat container as isolated dev workstation.
 - Clone repos into `/workspace`.
-- Git: no push to `main`/`master`. No rewrite/amend unless asked.
-- CI: use `gh run list` / `gh run view` when relevant.
-- Runtime assumptions: non-root user, no host source mount, no host Docker socket, no privileged mode.
+- First in any repo: `git status`, current branch, `gh auth status`.
+- Use `gh` for auth, clone, PRs, reviews, and CI.
+- Use `gh run list` and `gh run view` for CI when relevant.
+- No push to `main` or `master`. No rewrite/amend unless asked.
 
-## Tooling / Secrets
+## Environment
+- non-root user
+- no host source mount
+- no host Docker socket
+- no privileged mode
+
+## Tools / Secrets
 - Use repo-native tools and package managers.
 - Never commit or print secrets.
 - Auth persists in container volumes for Codex and GitHub CLI.
 - Treat provider credentials as sandbox/test unless explicitly stated otherwise.
 
-## Guidance Split
-- `/workspace/AGENTS.md` is the container-level baseline.
-- Each cloned repo should keep its own repo-level `AGENTS.md` at repo root.
+## Rule Split
+- `/workspace/AGENTS.md` is the container baseline.
+- If the repo has its own `AGENTS.md`, read that after this file.
