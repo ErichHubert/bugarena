@@ -1,6 +1,6 @@
-using CapabilityProvider.Models;
+using CapabilityBroker.Models;
 
-namespace CapabilityProvider.Services;
+namespace CapabilityBroker.Services;
 
 public interface IProviderRegistry
 {

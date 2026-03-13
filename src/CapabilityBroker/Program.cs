@@ -1,7 +1,7 @@
-using CapabilityProvider.Endpoints;
-using CapabilityProvider.Options;
-using CapabilityProvider.Proxy;
-using CapabilityProvider.Services;
+using CapabilityBroker.Endpoints;
+using CapabilityBroker.Options;
+using CapabilityBroker.Proxy;
+using CapabilityBroker.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -37,12 +37,12 @@ app.Services.GetRequiredService<CapabilityBrokerStartupValidator>().ValidateOrTh
 
 app.MapGet("/", () => Results.Ok(new
 {
-    service = "capability-provider",
+    service = "capability-broker",
     status = "ok"
 }));
 app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" }));
 app.MapHealthChecks("/health/ready", new HealthCheckOptions());
-app.MapCapabilityProviderEndpoints();
+app.MapCapabilityBrokerEndpoints();
 
 app.Run();
 

@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.agent
     environment:
-      CAPABILITY_PROVIDER_BASE_URL: http://capability-provider:8080
+      CAPABILITY_BROKER_BASE_URL: http://capability-broker:8080
     init: true
     stdin_open: true
     tty: true
@@ -18,22 +18,22 @@ services:
     networks:
       - agent-net
 
-  capability-provider:
+  capability-broker:
     build:
       context: .
-      dockerfile: Dockerfile.capability-provider
+      dockerfile: Dockerfile.capability-broker
     environment:
       ASPNETCORE_URLS: http://+:8080
-      CapabilityBroker__ProviderConfigPath: /run/configs/capability-provider.providers.json
-      CapabilityBroker__SecretBundlePath: /run/secrets/capability-provider-provider-secrets
+      CapabilityBroker__ProviderConfigPath: /run/configs/capability-broker.providers.json
+      CapabilityBroker__SecretBundlePath: /run/secrets/capability-broker-provider-secrets
     init: true
     restart: unless-stopped
     configs:
-      - source: capability_provider_config
-        target: /run/configs/capability-provider.providers.json
+      - source: capability_broker_config
+        target: /run/configs/capability-broker.providers.json
     secrets:
-      - source: capability_provider_provider_secrets
-        target: capability-provider-provider-secrets
+      - source: capability_broker_provider_secrets
+        target: capability-broker-provider-secrets
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
       interval: 30s
@@ -44,12 +44,12 @@ services:
       - agent-net
 
 configs:
-  capability_provider_config:
-    file: ./config/capability-provider/providers.json
+  capability_broker_config:
+    file: ./config/capability-broker/providers.json
 
 secrets:
-  capability_provider_provider_secrets:
-    file: ${CAPABILITY_PROVIDER_SECRETS_FILE:-./config/capability-provider/provider-secrets.placeholder.json}
+  capability_broker_provider_secrets:
+    file: ${CAPABILITY_BROKER_SECRETS_FILE:-./config/capability-broker/provider-secrets.placeholder.json}
 
 volumes:
   agent_workspace:

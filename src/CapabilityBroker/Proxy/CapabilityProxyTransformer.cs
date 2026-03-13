@@ -1,13 +1,13 @@
-using CapabilityProvider.Models;
+using CapabilityBroker.Models;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Forwarder;
 
-namespace CapabilityProvider.Proxy;
+namespace CapabilityBroker.Proxy;
 
 public sealed class CapabilityProxyTransformer : HttpTransformer
 {
-    public const string UpstreamPathItemKey = "CapabilityProvider.UpstreamPath";
+    public const string UpstreamPathItemKey = "CapabilityBroker.UpstreamPath";
 
     private readonly ProviderDefinition _provider;
     private readonly string? _secret;

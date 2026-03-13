@@ -1,4 +1,4 @@
-namespace CapabilityProvider.Services;
+namespace CapabilityBroker.Services;
 
 public sealed class CapabilityBrokerStartupValidator
 {

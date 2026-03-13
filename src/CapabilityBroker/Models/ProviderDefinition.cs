@@ -1,7 +1,7 @@
-using CapabilityProvider.Options;
+using CapabilityBroker.Options;
 using Microsoft.AspNetCore.Http;
 
-namespace CapabilityProvider.Models;
+namespace CapabilityBroker.Models;
 
 public sealed class ProviderDefinition
 {

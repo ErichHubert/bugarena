@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 WORKDIR /src
 
 COPY Bugarena.sln ./
-COPY src/CapabilityProvider/CapabilityProvider.csproj src/CapabilityProvider/
-RUN dotnet restore src/CapabilityProvider/CapabilityProvider.csproj
+COPY src/CapabilityBroker/CapabilityBroker.csproj src/CapabilityBroker/
+RUN dotnet restore src/CapabilityBroker/CapabilityBroker.csproj
 
-COPY src/CapabilityProvider/ src/CapabilityProvider/
-RUN dotnet publish src/CapabilityProvider/CapabilityProvider.csproj \
+COPY src/CapabilityBroker/ src/CapabilityBroker/
+RUN dotnet publish src/CapabilityBroker/CapabilityBroker.csproj \
     -c Release \
     -o /app/publish \
     /p:UseAppHost=false
@@ -27,4 +27,4 @@ EXPOSE 8080
 
 ENV ASPNETCORE_URLS=http://+:8080
 
-ENTRYPOINT ["dotnet", "CapabilityProvider.dll"]
+ENTRYPOINT ["dotnet", "CapabilityBroker.dll"]

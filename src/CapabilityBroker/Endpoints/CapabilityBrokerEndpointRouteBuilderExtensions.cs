@@ -1,10 +1,10 @@
-using CapabilityProvider.Proxy;
+using CapabilityBroker.Proxy;
 
-namespace CapabilityProvider.Endpoints;
+namespace CapabilityBroker.Endpoints;
 
-public static class CapabilityProviderEndpointRouteBuilderExtensions
+public static class CapabilityBrokerEndpointRouteBuilderExtensions
 {
-    public static IEndpointRouteBuilder MapCapabilityProviderEndpoints(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapCapabilityBrokerEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/providers");
 

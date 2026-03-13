@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace CapabilityProvider.Options;
+namespace CapabilityBroker.Options;
 
 public sealed class CapabilityBrokerOptionsValidator : IValidateOptions<CapabilityBrokerOptions>
 {
