@@ -1,6 +1,16 @@
 # Bugarena Agent Container
 
-This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
+This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, Node.js, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
+
+Requires Docker with the Compose plugin on the host that builds and runs the container.
+
+## Repository layout
+
+- `compose.agent.yml`: Compose service, named volumes, and internal network for the agent workstation.
+- `Dockerfile.agent`: Image definition with Codex, GitHub CLI, Node.js, and the .NET SDK installed.
+- `docker-entrypoint.sh`: Idempotent startup setup for directories, default git config, and shell aliases.
+- `agent/AGENTS.md`: Contributor operating guidance for work done inside the container.
+- `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
 The guidance is split into two layers:
 - `.config/AGENTS.md` is the canonical container baseline stored in the repo.
@@ -52,6 +62,17 @@ gh auth setup-git
 gh auth status
 ```
 
+## Container defaults
+
+On first start, the entrypoint seeds these global git defaults if they are not already configured:
+
+- `user.name=Codex Agent`
+- `user.email=codex-agent@example.com`
+- `init.defaultBranch=main`
+- `pull.rebase=false`
+
+It also adds an `ll` shell alias and prints the detected versions for `node`, `npm`, `dotnet`, and `gh`.
+
 ## Clone and work in `/workspace`
 
 Clone repositories inside the container so work stays in the named workspace volume:
@@ -81,6 +102,7 @@ dotnet test
 - Codex auth persists in `/home/agent/.codex` via the `agent_codex` named volume.
 - GitHub CLI auth and other config persist in `/home/agent/.config` via the `agent_config` named volume.
 - Cache data persists in `/home/agent/.cache` via the `agent_cache` named volume.
+- Global git config is written in `/home/agent/.gitconfig`, so the entrypoint re-seeds its defaults when a new container is created unless you extend the image or mount additional home-directory state.
 
 Stop the environment without removing volumes:
 
