@@ -3,7 +3,7 @@
 This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
 
 The guidance is split into two layers:
-- `/workspace/AGENTS.md` is baked into the image and overwritten by the entrypoint on every container start.
+- `/workspace/AGENTS.md` is baked into the image and seeded into a new workspace volume.
 - each cloned repo should provide its own repo-root `AGENTS.md` for project-specific rules
 - repo-root `AGENTS.md` should start with `READ /workspace/AGENTS.md BEFORE ANYTHING (skip if missing).`
 
@@ -27,7 +27,7 @@ Open a shell inside the container:
 docker compose -f compose.agent.yml exec agent bash
 ```
 
-On container start, the entrypoint copies the image-managed baseline to `/workspace/AGENTS.md`, replacing any older container baseline in the named volume, and prints a reminder to read it first.
+On first use with a new workspace volume, Docker seeds `/workspace/AGENTS.md` from the image. On startup, the entrypoint only restores it if the file is missing, so manual edits inside the volume are preserved.
 
 ## Authenticate tools
 
@@ -61,6 +61,8 @@ codex
 ```
 
 If the cloned repository has its own root `AGENTS.md`, Codex should read `/workspace/AGENTS.md` first and then the repo-root file.
+
+If you customize `/workspace/AGENTS.md` inside the volume, those changes persist across container restarts. Rebuilds update the image baseline, not existing workspace volumes.
 
 Standard .NET workflows run normally from there:
 
