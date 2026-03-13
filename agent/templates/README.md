@@ -1,4 +1,4 @@
-# Templates
+# agent/templates
 
 Support material for the repo-root `AGENTS.md`. Keep the policy file short and use these only when they fit.
 
