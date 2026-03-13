@@ -2,7 +2,6 @@
 
 READ `/workspace/AGENTS.md` BEFORE ANYTHING (skip if missing).
 
-Your name is Luffy.
 Repo rules only. Style: telegraph; low filler; min tokens.
 
 ## Workflow
