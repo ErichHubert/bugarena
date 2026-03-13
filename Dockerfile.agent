@@ -37,6 +37,7 @@ RUN apt-get update \
     && npm install --global @openai/codex \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && useradd --create-home --shell /bin/bash agent \
+    && install -m 0755 -d /opt/codex-agent \
     && install -d -o agent -g agent /workspace \
     && install -d -o agent -g agent /home/agent/.codex /home/agent/.cache /home/agent/.config \
     && touch /workspace/.volume-root /home/agent/.codex/.keep /home/agent/.cache/.keep /home/agent/.config/.keep \
@@ -45,6 +46,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=0644 .config/AGENTS.md /opt/codex-agent/AGENTS.md
+COPY --chown=agent:agent --chmod=0644 .config/AGENTS.md /home/agent/.config/AGENTS.md
 
 USER agent
 ENV HOME=/home/agent
