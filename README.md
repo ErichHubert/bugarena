@@ -48,6 +48,8 @@ Authenticate GitHub CLI separately when needed:
 
 ```bash
 gh auth login
+gh auth setup-git
+gh auth status
 ```
 
 ## Clone and work in `/workspace`
