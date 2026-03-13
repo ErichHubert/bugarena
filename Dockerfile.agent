@@ -45,6 +45,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=0644 agent/container-AGENTS.md /opt/codex-agent/AGENTS.md
 
 USER agent
 ENV HOME=/home/agent
