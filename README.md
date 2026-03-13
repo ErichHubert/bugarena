@@ -39,6 +39,12 @@ Start the full stack in the background:
 docker compose -f compose.agent.yml up -d
 ```
 
+If you want to start the full stack with a real provider secret bundle in one line:
+
+```bash
+CAPABILITY_PROVIDER_SECRETS_FILE=.secrets/capability-provider/provider-secrets.json docker compose -f compose.agent.yml up -d --build
+```
+
 Open a shell inside the container:
 
 ```bash
