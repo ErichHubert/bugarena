@@ -1,6 +1,6 @@
 # Templates
 
-Support material for `agent/AGENTS.md`. Keep the policy file short and use these only when they fit.
+Support material for the repo-root `AGENTS.md`. Keep the policy file short and use these only when they fit.
 
 - adapt naming, namespaces, and paths to the target repo
 - use them as starting points, not blind copy-paste
