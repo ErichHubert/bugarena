@@ -1,47 +1,36 @@
-# Template: Agent container stack (phase 1)
+# Template: Agent container stack
 
 ## Goal
-A Codex contributor container that behaves like an isolated developer workstation.
+Codex contributor container that behaves like an isolated dev workstation.
 
-## Required tools
-- git
-- gh
-- node + npm
-- @openai/codex
-- .NET SDK
+## Include
+- git, gh, node + npm, `@openai/codex`, .NET SDK
 - jq, rg, fd, curl, unzip, zip, python3
 
-## Required properties
+## Rules
 - non-root runtime user
-- workspace stored in named volume
+- named volume for `/workspace`
+- keep the canonical container baseline in `.config/AGENTS.md`
+- seed `/home/agent/.config/AGENTS.md` from that baseline
+- do not create `/workspace/AGENTS.md`
+- only restore the home `AGENTS.md` on startup if it is missing or empty
+- expect repo-root `AGENTS.md` files to point back to `/home/agent/.config/AGENTS.md`
+- persistent Codex config for `codex login`
 - no host source mount
 - no host Docker socket
 - no privileged mode
-- no provider secrets in image
-- persistent Codex config volume for `codex login`
+- no provider secrets in the image
+- no published ports unless required
 
-## Compose principles
-- no published ports
-- dedicated internal network
-- named volumes for `/workspace`, Codex config, caches
-- GitHub bot token only if needed
-
-## Runtime flow
+## Flow
 1. start container
-2. entrypoint performs harmless idempotent init
-3. login to Codex manually (`codex login`)
-4. authenticate GitHub if needed
-5. clone repo inside `/workspace`
-6. branch, implement, test, PR
+2. entrypoint does harmless idempotent setup, restores the home `AGENTS.md` if needed, removes any old `/workspace/AGENTS.md`, and reminds the user to read `/home/agent/.config/AGENTS.md`
+3. run `codex login`
+4. run `gh auth login` or `gh auth status`
+5. run `gh repo clone ...` into `/workspace`
+6. read repo-root `AGENTS.md` inside the cloned repo after the container baseline
+7. branch, implement, test, commit, and `gh pr create`
 
-## Entrypoint should do
-- git defaults
-- create dirs
-- friendly environment info
-- exec main command
-
-## Entrypoint should not do
-- interactive login
-- clone repo automatically
-- start codex automatically
-- install provider secrets
+## Entrypoint
+- do: set git defaults, create dirs, print environment summary, exec command
+- do not: force login, auto-clone repos, auto-start Codex, inject secrets

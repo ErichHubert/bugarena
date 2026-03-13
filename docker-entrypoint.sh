@@ -2,10 +2,11 @@
 set -Eeuo pipefail
 
 echo "Initializing Codex agent container..."
+echo "READ /home/agent/.config/AGENTS.md BEFORE ANYTHING."
 
 mkdir -p "$HOME/.config" "$HOME/.codex" "$HOME/.cache" /workspace
 
-git config --global user.name "Codex Agent"
+git config --global user.name "coding.agent.luffy"
 git config --global user.email "YOUR_GITHUB_ID+YOUR_GITHUB_USERNAME@users.noreply.github.com"
 git config --global init.defaultBranch main
 git config --global pull.rebase false
@@ -21,6 +22,10 @@ if ! grep -Fq "# codex-agent-aliases" "$HOME/.bashrc"; then
 alias ll='ls -alF'
 EOF
 fi
+
+if [[ ! -s "$HOME/.config/AGENTS.md" ]]; then
+    install -m 0644 /opt/codex-agent/AGENTS.md "$HOME/.config/AGENTS.md"
+fi 
 
 for tool in node npm dotnet gh; do
     version="$($tool --version 2>/dev/null | head -n 1 || true)"
