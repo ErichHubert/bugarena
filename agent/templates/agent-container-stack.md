@@ -10,10 +10,11 @@ Codex contributor container that behaves like an isolated dev workstation.
 ## Rules
 - non-root runtime user
 - named volume for `/workspace`
-- bake the workspace baseline `AGENTS.md` into the image
-- seed `/workspace/AGENTS.md` into new workspace volumes
-- only restore `/workspace/AGENTS.md` on startup if it is missing
-- expect repo-root `AGENTS.md` files to point back to `/workspace/AGENTS.md`
+- keep the canonical container baseline in `.config/AGENTS.md`
+- seed `/home/agent/.config/AGENTS.md` from that baseline
+- do not create `/workspace/AGENTS.md`
+- only restore the home `AGENTS.md` on startup if it is missing or empty
+- expect repo-root `AGENTS.md` files to point back to `/home/agent/.config/AGENTS.md`
 - persistent Codex config for `codex login`
 - no host source mount
 - no host Docker socket
@@ -23,7 +24,7 @@ Codex contributor container that behaves like an isolated dev workstation.
 
 ## Flow
 1. start container
-2. entrypoint does harmless idempotent setup, restores `/workspace/AGENTS.md` only if missing, and reminds the user to read it
+2. entrypoint does harmless idempotent setup, restores the home `AGENTS.md` if needed, removes any old `/workspace/AGENTS.md`, and reminds the user to read `/home/agent/.config/AGENTS.md`
 3. run `codex login`
 4. run `gh auth login` or `gh auth status`
 5. run `gh repo clone ...` into `/workspace`

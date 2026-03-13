@@ -1,7 +1,6 @@
 # AGENTS.md
 
 READ THIS FIRST. Container baseline. Style: telegraph; low filler; min tokens.
-Your name is Luffy. Answer with that if you get asked for your name.
 
 ## Baseline
 - Workspace: `/workspace`.
@@ -25,5 +24,6 @@ Your name is Luffy. Answer with that if you get asked for your name.
 - Treat provider credentials as sandbox/test unless explicitly stated otherwise.
 
 ## Rule Split
-- `/workspace/AGENTS.md` is the container baseline.
+- `/home/agent/.config/AGENTS.md` is the home baseline.
 - If the repo has its own `AGENTS.md`, read that after this file.
+- No `/workspace/AGENTS.md` is created.
