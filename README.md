@@ -2,9 +2,11 @@
 
 This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
 
-The guidance is split into two layers:
+The guidance is split into three layers:
 - `.config/AGENTS.md` is the canonical container baseline stored in the repo.
 - `/home/agent/.config/AGENTS.md` is seeded from that baseline for the container user.
+- `.codex/config.toml` is the canonical default Codex config stored in the repo.
+- `/home/agent/.codex/config.toml` is seeded from that baseline for the container user.
 - each cloned repo should provide its own repo-root `AGENTS.md` for project-specific rules
 - repo-root `AGENTS.md` should start with `READ /home/agent/.config/AGENTS.md BEFORE ANYTHING (skip if missing).`
 
@@ -28,7 +30,16 @@ Open a shell inside the container:
 docker compose -f compose.agent.yml exec agent bash
 ```
 
-On first use with a new config volume, Docker seeds `/home/agent/.config/AGENTS.md` from the image. On startup, the entrypoint only restores that file if it is missing or empty, so manual edits inside the config volume are preserved. 
+On first use with a new config volume, Docker seeds `/home/agent/.config/AGENTS.md` from the image. On first use with a new Codex volume, Docker seeds `/home/agent/.codex/config.toml` from the image. On startup, the entrypoint only restores either file if it is missing or empty, so manual edits inside the named volumes are preserved.
+
+The default Codex config baked into the image is:
+
+```toml
+model = "gpt-5.4"
+personality = "pragmatic"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+```
 
 ## Authenticate tools
 
@@ -65,7 +76,7 @@ codex
 
 If the cloned repository has its own root `AGENTS.md`, that file should point to `/home/agent/.config/AGENTS.md` first and then apply repo-specific rules.
 
-If you customize `/home/agent/.config/AGENTS.md` inside the volume, those changes persist across container restarts. Rebuilds update the image baseline, not existing config volumes.
+If you customize `/home/agent/.config/AGENTS.md` or `/home/agent/.codex/config.toml` inside the named volumes, those changes persist across container restarts. Rebuilds update the image baselines, not existing volumes.
 
 Standard .NET workflows run normally from there:
 
@@ -78,7 +89,7 @@ dotnet test
 ## Persistence
 
 - Repositories and other working files persist in `/workspace` via the `agent_workspace` named volume.
-- Codex auth persists in `/home/agent/.codex` via the `agent_codex` named volume.
+- Codex auth and config persist in `/home/agent/.codex` via the `agent_codex` named volume.
 - GitHub CLI auth and other config persist in `/home/agent/.config` via the `agent_config` named volume.
 - Cache data persists in `/home/agent/.cache` via the `agent_cache` named volume.
 
