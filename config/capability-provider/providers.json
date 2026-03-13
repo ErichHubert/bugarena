@@ -1,0 +1,6 @@
+{
+  "CapabilityBroker": {
+    "RequestTimeoutSeconds": 100,
+    "Providers": {}
+  }
+}
