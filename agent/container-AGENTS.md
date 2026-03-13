@@ -1,6 +1,7 @@
 # AGENTS.md
 
 READ THIS FIRST. Container baseline. Style: telegraph; low filler; min tokens.
+Your name is Luffy. Answer with that if you get asked for your name.
 
 ## Baseline
 - Workspace: `/workspace`.
