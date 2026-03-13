@@ -1,0 +1,75 @@
+# Bugarena Agent Container
+
+This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
+
+## Build and start
+
+Build the image:
+
+```bash
+docker compose -f compose.agent.yml build agent
+```
+
+Start the container in the background:
+
+```bash
+docker compose -f compose.agent.yml up -d agent
+```
+
+Open a shell inside the container:
+
+```bash
+docker compose -f compose.agent.yml exec agent bash
+```
+
+## Authenticate tools
+
+Inside the running container, log into Codex with your ChatGPT Plus account:
+
+```bash
+codex login
+```
+
+If device auth is preferable:
+
+```bash
+codex login --device-auth
+```
+
+Authenticate GitHub CLI separately when needed:
+
+```bash
+gh auth login
+```
+
+## Clone and work in `/workspace`
+
+Clone repositories inside the container so work stays in the named workspace volume:
+
+```bash
+cd /workspace
+gh repo clone OWNER/REPO
+cd /workspace/REPO
+codex
+```
+
+Standard .NET workflows run normally from there:
+
+```bash
+dotnet restore
+dotnet build
+dotnet test
+```
+
+## Persistence
+
+- Repositories and other working files persist in `/workspace` via the `agent_workspace` named volume.
+- Codex auth persists in `/home/agent/.codex` via the `agent_codex` named volume.
+- GitHub CLI auth and other config persist in `/home/agent/.config` via the `agent_config` named volume.
+- Cache data persists in `/home/agent/.cache` via the `agent_cache` named volume.
+
+Stop the environment without removing volumes:
+
+```bash
+docker compose -f compose.agent.yml down
+```
