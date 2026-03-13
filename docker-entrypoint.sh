@@ -36,6 +36,10 @@ if [[ ! -s "$HOME/.config/AGENTS.md" ]]; then
     install -m 0644 /opt/codex-agent/AGENTS.md "$HOME/.config/AGENTS.md"
 fi 
 
+if [[ ! -s "$HOME/.codex/config.toml" ]]; then
+    install -m 0644 /opt/codex-agent/config.toml "$HOME/.codex/config.toml"
+fi
+
 for tool in node npm dotnet gh; do
     version="$($tool --version 2>/dev/null | head -n 1 || true)"
     echo "$tool: ${version:-not installed}"
