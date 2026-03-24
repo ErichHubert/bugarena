@@ -24,6 +24,12 @@ Style: concise; technical; low fluff.
 - no host Docker socket
 - no privileged mode
 
+## Test Infrastructure
+- If `DOCKER_HOST` is set in a shell session, assume the isolated `docker-daemon` Testcontainers backend is available.
+- Use that backend for Docker-backed integration tests; do not assume host Docker access exists.
+- If `DOCKER_HOST` is not set, do not assume Docker-backed test infrastructure is available.
+- Keep test infrastructure separate from `CapabilityBroker`; broker rules are only for secret-bearing outbound HTTP providers.
+
 ## Tools / Secrets
 - Use repo-native tools and package managers.
 - Never commit or print secrets.
