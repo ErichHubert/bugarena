@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 echo "Initializing Codex agent container..."
-echo "READ /home/agent/.config/AGENTS.md BEFORE ANYTHING."
+echo "READ /home/agent/.codex/AGENTS.md BEFORE ANYTHING."
 
 mkdir -p "$HOME/.config" "$HOME/.codex" "$HOME/.cache" /workspace
 
@@ -32,9 +32,13 @@ alias ll='ls -alF'
 EOF
 fi
 
-if [[ ! -s "$HOME/.config/AGENTS.md" ]]; then
-    install -m 0644 /opt/codex-agent/AGENTS.md "$HOME/.config/AGENTS.md"
-fi 
+if [[ ! -s "$HOME/.codex/AGENTS.md" ]]; then
+    if [[ -s "$HOME/.config/AGENTS.md" ]]; then
+        mv "$HOME/.config/AGENTS.md" "$HOME/.codex/AGENTS.md"
+    else
+        install -m 0644 /opt/codex-agent/codex-home-baseline.md "$HOME/.codex/AGENTS.md"
+    fi
+fi
 
 if [[ ! -s "$HOME/.codex/config.toml" ]]; then
     install -m 0644 /opt/codex-agent/config.toml "$HOME/.codex/config.toml"
