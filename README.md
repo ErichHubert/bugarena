@@ -4,6 +4,28 @@ This repository contains the local agent container scaffold plus a YARP-based `C
 
 Requires Docker with the Compose plugin on the host that builds and runs the container.
 
+## What this project is
+
+- a reproducible local workstation for agent-driven development work
+- a sidecar `CapabilityBroker` that owns provider secrets and injects auth server-side
+- a reference implementation of the repo rule: human dev can talk to providers directly, agent-mode traffic goes through a broker
+
+In practice, this repo is infrastructure, not an application product. You use it to boot an isolated Codex-capable workspace plus a tightly scoped outbound proxy for API-key-backed providers.
+
+## Why it exists
+
+- keep agent work inside Docker-managed volumes instead of mounting the host repo or host home directory
+- keep provider API keys out of the agent container and out of application code paths
+- make local agent runs repeatable with a known toolchain, startup behavior, and network shape
+- provide one place to evolve the broker pattern, templates, and validation around provider integrations
+
+## Architecture at a glance
+
+1. `agent` is the interactive workstation container where Codex, `dotnet`, `node`, and `gh` run.
+2. `capability-broker` is a separate ASP.NET Core service that proxies only explicitly allowed upstream provider routes.
+3. Docker configs provide non-secret broker metadata, and Docker secrets provide the secret bundle.
+4. Agent-mode clients call `CAPABILITY_BROKER_BASE_URL`; the broker validates provider, method, path, and secret availability before forwarding.
+
 ## Repository layout
 
 - `compose.agent.yml`: Compose services, named volumes, Docker secret/config mounts, and the shared `agent-net` network.
@@ -135,6 +157,15 @@ The service validates:
 - allowed HTTP method
 - allowed path prefix
 - required secret availability
+
+This keeps the trust boundary narrow: the agent can make domain-level provider calls, but it does not get raw provider keys and it cannot turn the broker into a general-purpose internet proxy.
+
+Broker scope:
+- yes: outbound HTTP for allowlisted API-key-backed providers
+- yes: server-side auth injection using the configured secret bundle
+- no: arbitrary URL forwarding
+- no: database, filesystem, git, or CLI brokering
+- no: storing provider secrets in source, appsettings, or the agent container image
 
 Health endpoints:
 - `/health/live`
