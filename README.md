@@ -238,6 +238,35 @@ Example:
 }
 ```
 
+Supported auth modes:
+
+- `None`: no auth injection.
+- `BearerToken`: injects `Authorization: <Scheme> <SecretKey>`. Required: `SecretKey`. Optional: `Scheme` (defaults to `Bearer`).
+- `ApiKeyHeader`: injects the secret into a custom request header. Required: `SecretKey`, `HeaderName`.
+- `QueryApiKey`: injects the secret into a query-string parameter. Required: `SecretKey`, `QueryParameterName`.
+
+Example auth fragments:
+
+```json
+{
+  "Auth": {
+    "Type": "ApiKeyHeader",
+    "SecretKey": "anthropic-sandbox",
+    "HeaderName": "x-api-key"
+  }
+}
+```
+
+```json
+{
+  "Auth": {
+    "Type": "QueryApiKey",
+    "SecretKey": "finnhub-sandbox",
+    "QueryParameterName": "token"
+  }
+}
+```
+
 ## Secret handling
 
 Provider secrets are not stored in source, `appsettings`, or Dockerfiles. Compose mounts a Docker secret into the `CapabilityBroker` container and the service reads the secret bundle from the mounted file path.
