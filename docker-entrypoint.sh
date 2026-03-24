@@ -15,8 +15,6 @@ set_git_config_default() {
     fi
 }
 
-set_git_config_default user.name "Codex Agent"
-set_git_config_default user.email "YOUR_GITHUB_ID+YOUR_GITHUB_USERNAME@users.noreply.github.com"
 set_git_config_default init.defaultBranch main
 set_git_config_default pull.rebase false
 
