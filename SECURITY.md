@@ -26,6 +26,17 @@ Useful report categories for this repository include:
 - container isolation escapes
 - workflow or build leakage of sensitive data
 
+## Security automation
+
+The public repository security baseline is expected to include:
+
+- Dependabot alerts and Dependabot security updates
+- CodeQL default setup for code scanning
+- secret scanning and push protection
+- repository workflows for dependency review, NuGet package auditing, container scanning, and secret scanning
+
+These automated checks improve detection and prioritization, but they do not replace responsible disclosure for vulnerabilities that need context, exploit details, or coordinated remediation.
+
 ## Disclosure handling
 
 - Reports are handled on a best-effort basis.

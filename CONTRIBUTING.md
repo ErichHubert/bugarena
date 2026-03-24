@@ -29,11 +29,14 @@ dotnet test Bugarena.sln --no-build
 
 The platform smoke tests are intended to run inside the `agent` container with the `testinfra` profile enabled.
 
+GitHub also enforces repository security checks on pull requests. If your change touches dependencies, workflows, Dockerfiles, or secret-handling paths, expect the relevant security workflows to run in addition to the main validation workflow.
+
 ## Pull requests
 
 - Describe the problem and the behavior change clearly.
 - Call out any operational or security impact.
 - Include the validation you ran.
+- Call out dependency, container, workflow, or secret-handling changes explicitly when they affect security review.
 - Keep generated noise out of commits.
 
 If you are changing provider or proxy behavior, include the allowed methods, allowed path prefixes, auth mode, and failure behavior in the PR description.

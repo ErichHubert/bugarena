@@ -1,0 +1,64 @@
+name: NuGet Audit
+
+on:
+  pull_request:
+    paths:
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "**/*.sln"
+      - "NuGet.config"
+      - "nuget.config"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "**/*.sln"
+      - "NuGet.config"
+      - "nuget.config"
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            Bugarena.sln
+            src/**/*.csproj
+            tests/**/*.csproj
+
+      - name: Fail on high or critical NuGet vulnerabilities
+        run: |
+          dotnet restore Bugarena.sln \
+            -p:NuGetAudit=true \
+            -p:NuGetAuditMode=all \
+            -p:NuGetAuditLevel=high \
+            '-p:WarningsAsErrors=NU1903;NU1904'
+
+          dotnet restore tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj \
+            -p:NuGetAudit=true \
+            -p:NuGetAuditMode=all \
+            -p:NuGetAuditLevel=high \
+            '-p:WarningsAsErrors=NU1903;NU1904'

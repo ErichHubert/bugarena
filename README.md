@@ -203,6 +203,34 @@ The platform smoke tests cover:
 
 GitHub Actions uses the same model: the runner orchestrates Docker, but the authoritative validation commands run inside `agent`. CI never starts an interactive Codex session and never performs `codex login`.
 
+## Security automation
+
+The repository uses a layered GitHub security baseline. Some checks run as GitHub-native repository features, and some run as repository-owned workflows.
+
+Repository-owned workflows:
+
+- `PR Agent Environment`: builds the stack and runs the authoritative containerized validation flow
+- `Dependency Review`: fails pull requests that introduce high or critical runtime dependency risk
+- `NuGet Audit`: fails on high or critical vulnerable NuGet packages, including transitive packages
+- `Container Scan`: uses Trivy to scan repository configuration plus the built `agent` and `capability-broker` images
+- `Secret Scan`: uses Gitleaks to scan the git history for committed secrets
+
+Repository settings to enable in GitHub:
+
+- Dependabot alerts
+- Dependabot security updates
+- CodeQL default setup for code scanning
+- Secret scanning and push protection
+- branch protection or rulesets that require the security workflows to pass before merge
+
+The checked-in Dependabot configuration in `.github/dependabot.yml` opens grouped weekly update PRs for:
+
+- GitHub Actions
+- NuGet packages
+- Docker base images
+
+Security updates and normal version updates are grouped separately to keep review noise manageable.
+
 ## Capability broker
 
 `CapabilityBroker` is an allowlist-based outbound proxy for API-key-backed providers. It is built with ASP.NET Core and YARP and is intended for agent-mode traffic only. Provider secrets stay in the proxy service; callers send normal requests to:
