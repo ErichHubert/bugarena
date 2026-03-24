@@ -5,9 +5,10 @@ services:
       dockerfile: Dockerfile.agent
     environment:
       CAPABILITY_BROKER_BASE_URL: http://capability-broker:8080
-      DOCKER_HOST: tcp://docker-daemon:2375
-      TESTCONTAINERS_HOST_OVERRIDE: docker-daemon
-      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+      BUGARENA_TESTINFRA_SERVICE_NAME: docker-daemon
+      BUGARENA_TESTINFRA_DOCKER_HOST: tcp://docker-daemon:2375
+      BUGARENA_TESTINFRA_TESTCONTAINERS_HOST_OVERRIDE: docker-daemon
+      BUGARENA_TESTINFRA_TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
     init: true
     stdin_open: true
     tty: true

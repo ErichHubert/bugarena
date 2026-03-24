@@ -151,14 +151,20 @@ dotnet build
 dotnet test
 ```
 
-The agent container receives:
+The agent container always receives `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`.
 
-- `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`
+For Docker-backed test infrastructure, the image also carries internal `BUGARENA_TESTINFRA_*` defaults. Shell sessions export the standard Docker/Testcontainers variables only when `docker-daemon` is actually present:
+
 - `DOCKER_HOST=tcp://docker-daemon:2375`
 - `TESTCONTAINERS_HOST_OVERRIDE=docker-daemon`
 - `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`
 
-The broker URL is always available over `agent-net`. The Docker/Testcontainers variables are used when the `testinfra` profile is enabled, so integration tests can target the isolated `docker-daemon` sidecar instead of the host Docker socket.
+That means:
+
+- with `--profile testinfra`, repo tooling inside `agent` can use the isolated `docker-daemon` sidecar
+- without `--profile testinfra`, those standard Docker/Testcontainers variables stay unset, so other repos do not get a broken `DOCKER_HOST`
+
+The broker URL is always available over `agent-net`. Docker-backed integration tests remain separate from `CapabilityBroker` and never use the host Docker socket.
 
 ## Validate the agent environment
 
