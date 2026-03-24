@@ -1,14 +1,41 @@
 # Bugarena Agent Container
 
-This repository contains the Phase 1 local agent container scaffold: an isolated developer workstation for Codex, GitHub CLI, Node.js, and .NET work. The container uses named Docker volumes only and does not mount the host repo, host home directory, or Docker socket.
+This repository contains the local agent container scaffold plus a YARP-based `CapabilityBroker` service. The stack stays isolated: named Docker volumes only, no host repo mount, no host home mount, and no Docker socket inside the agent container.
 
 Requires Docker with the Compose plugin on the host that builds and runs the container.
 
+## What this project is
+
+- a reproducible local workstation for agent-driven development work
+- a sidecar `CapabilityBroker` that owns provider secrets and injects auth server-side
+- a reference implementation of the repo rule: human dev can talk to providers directly, agent-mode traffic goes through a broker
+
+In practice, this repo is infrastructure, not an application product. You use it to boot an isolated Codex-capable workspace plus a tightly scoped outbound proxy for API-key-backed providers.
+
+## Why it exists
+
+- keep agent work inside Docker-managed volumes instead of mounting the host repo or host home directory
+- keep provider API keys out of the agent container and out of application code paths
+- make local agent runs repeatable with a known toolchain, startup behavior, and network shape
+- provide one place to evolve the broker pattern, templates, and validation around provider integrations
+
+## Architecture at a glance
+
+1. `agent` is the interactive workstation container where Codex, `dotnet`, `node`, and `gh` run.
+2. `capability-broker` is a separate ASP.NET Core service that proxies only explicitly allowed upstream provider routes.
+3. Docker configs provide non-secret broker metadata, and Docker secrets provide the secret bundle.
+4. Agent-mode clients call `CAPABILITY_BROKER_BASE_URL`; the broker validates provider, method, path, and secret availability before forwarding.
+
 ## Repository layout
 
-- `compose.agent.yml`: Compose service, named volumes, and internal network for the agent workstation.
+- `compose.agent.yml`: Compose services, named volumes, Docker secret/config mounts, and the shared `agent-net` network.
+- `Bugarena.sln`: .NET solution for the capability broker and tests.
 - `Dockerfile.agent`: Image definition with Codex, GitHub CLI, Node.js, and the .NET SDK installed.
+- `Dockerfile.capability-broker`: Multi-stage image for the YARP capability proxy.
 - `docker-entrypoint.sh`: Idempotent startup setup for directories, default git config, and shell aliases.
+- `src/CapabilityBroker/`: ASP.NET Core + YARP reverse proxy service with provider allowlists and secret-backed auth injection.
+- `tests/CapabilityBroker.Tests/`: regression tests for proxying, allowlists, and startup validation.
+- `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
 - `agent/AGENTS.md`: Contributor operating guidance for work done inside the container.
 - `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
@@ -22,16 +49,22 @@ The guidance is split into three layers:
 
 ## Build and start
 
-Build the image:
+Build both images:
 
 ```bash
-docker compose -f compose.agent.yml build agent
+docker compose -f compose.agent.yml build agent capability-broker
 ```
 
-Start the container in the background:
+Start the full stack in the background:
 
 ```bash
-docker compose -f compose.agent.yml up -d agent
+docker compose -f compose.agent.yml up -d
+```
+
+If you want to start the full stack with a real provider secret bundle in one line:
+
+```bash
+CAPABILITY_BROKER_SECRETS_FILE=.secrets/capability-broker/provider-secrets.json docker compose -f compose.agent.yml up -d --build
 ```
 
 Open a shell inside the container:
@@ -39,6 +72,8 @@ Open a shell inside the container:
 ```bash
 docker compose -f compose.agent.yml exec agent bash
 ```
+
+If you only need the workstation, `docker compose -f compose.agent.yml up -d agent` still works.
 
 On first use with a new config volume, Docker seeds `/home/agent/.config/AGENTS.md` from the image. On first use with a new Codex volume, Docker seeds `/home/agent/.codex/config.toml` from the image. On startup, the entrypoint only restores either file if it is missing or empty, so manual edits inside the named volumes are preserved.
 
@@ -106,6 +141,88 @@ dotnet restore
 dotnet build
 dotnet test
 ```
+
+The agent container receives `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`, so agent-mode clients can target the internal proxy over `agent-net`.
+
+## Capability broker
+
+`CapabilityBroker` is an allowlist-based outbound proxy for API-key-backed providers. It is built with ASP.NET Core and YARP and is intended for agent-mode traffic only. Provider secrets stay in the proxy service; callers send normal requests to:
+
+```text
+/providers/{provider}/{allowed-upstream-path}
+```
+
+The service validates:
+- configured provider name
+- allowed HTTP method
+- allowed path prefix
+- required secret availability
+
+This keeps the trust boundary narrow: the agent can make domain-level provider calls, but it does not get raw provider keys and it cannot turn the broker into a general-purpose internet proxy.
+
+Broker scope:
+- yes: outbound HTTP for allowlisted API-key-backed providers
+- yes: server-side auth injection using the configured secret bundle
+- no: arbitrary URL forwarding
+- no: database, filesystem, git, or CLI brokering
+- no: storing provider secrets in source, appsettings, or the agent container image
+
+Health endpoints:
+- `/health/live`
+- `/health/ready`
+
+## Provider configuration
+
+Non-secret provider metadata lives in `config/capability-broker/providers.json`. The checked-in default is empty so the compose stack stays safe to start. Add providers by editing that file.
+
+Example:
+
+```json
+{
+  "CapabilityBroker": {
+    "RequestTimeoutSeconds": 100,
+    "Providers": {
+      "openai": {
+        "BaseUrl": "https://api.openai.com",
+        "AllowedMethods": ["POST"],
+        "AllowedPathPrefixes": ["/v1/responses", "/v1/embeddings"],
+        "Auth": {
+          "Type": "BearerToken",
+          "SecretKey": "openai-sandbox"
+        }
+      }
+    }
+  }
+}
+```
+
+## Secret handling
+
+Provider secrets are not stored in source, `appsettings`, or Dockerfiles. Compose mounts a Docker secret into the `CapabilityBroker` container and the service reads the secret bundle from the mounted file path.
+
+Default compose behavior points at the placeholder bundle:
+
+```text
+config/capability-broker/provider-secrets.placeholder.json
+```
+
+For a real local setup, create an ignored secret file and point Compose at it:
+
+```bash
+mkdir -p .secrets/capability-broker
+cat > .secrets/capability-broker/provider-secrets.json <<'EOF'
+{
+  "Secrets": {
+    "openai-sandbox": "replace-with-sandbox-key"
+  }
+}
+EOF
+
+CAPABILITY_BROKER_SECRETS_FILE=.secrets/capability-broker/provider-secrets.json \
+  docker compose -f compose.agent.yml up -d capability-broker
+```
+
+The bundle key must match the provider `Auth.SecretKey` value.
 
 ## Persistence
 
