@@ -1,0 +1,77 @@
+name: Container Scan
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile.agent"
+      - "Dockerfile.capability-broker"
+      - "compose.agent.yml"
+      - "docker-entrypoint.sh"
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile.agent"
+      - "Dockerfile.capability-broker"
+      - "compose.agent.yml"
+      - "docker-entrypoint.sh"
+  schedule:
+    - cron: "43 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  config-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Scan repository configuration
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  image-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build agent image
+        run: docker build -f Dockerfile.agent -t bugarena-agent:${{ github.sha }} .
+
+      - name: Build capability broker image
+        run: docker build -f Dockerfile.capability-broker -t bugarena-capability-broker:${{ github.sha }} .
+
+      - name: Scan agent image
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: bugarena-agent:${{ github.sha }}
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Scan capability broker image
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: bugarena-capability-broker:${{ github.sha }}
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
