@@ -5,6 +5,9 @@ services:
       dockerfile: Dockerfile.agent
     environment:
       CAPABILITY_BROKER_BASE_URL: http://capability-broker:8080
+      DOCKER_HOST: tcp://docker-daemon:2375
+      TESTCONTAINERS_HOST_OVERRIDE: docker-daemon
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
     init: true
     stdin_open: true
     tty: true
@@ -17,6 +20,7 @@ services:
       - agent_config:/home/agent/.config
     networks:
       - agent-net
+      - testinfra-net
 
   capability-broker:
     build:
@@ -43,6 +47,30 @@ services:
     networks:
       - agent-net
 
+  docker-daemon:
+    image: docker:29.3.0-dind
+    privileged: true
+    profiles:
+      - testinfra
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - --host=tcp://0.0.0.0:2375
+      - --host=unix:///var/run/docker.sock
+      - --tls=false
+    init: true
+    restart: unless-stopped
+    volumes:
+      - docker_daemon_data:/var/lib/docker
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - testinfra-net
+
 configs:
   capability_broker_config:
     file: ./config/capability-broker/providers.json
@@ -56,7 +84,10 @@ volumes:
   agent_codex:
   agent_cache:
   agent_config:
+  docker_daemon_data:
 
 networks:
   agent-net:
+    driver: bridge
+  testinfra-net:
     driver: bridge
