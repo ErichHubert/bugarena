@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Scan repository configuration
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: config
           scan-ref: .
@@ -59,7 +59,7 @@ jobs:
         run: docker build -f Dockerfile.capability-broker -t bugarena-capability-broker:${{ github.sha }} .
 
       - name: Scan agent image
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: bugarena-agent:${{ github.sha }}
           vuln-type: os,library
@@ -68,7 +68,7 @@ jobs:
           exit-code: "1"
 
       - name: Scan capability broker image
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: bugarena-capability-broker:${{ github.sha }}
           vuln-type: os,library
