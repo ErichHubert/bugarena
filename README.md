@@ -42,6 +42,12 @@ In practice, this repo is infrastructure, not an application product. You use it
 - `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
 - `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
+Project docs:
+- `CONTRIBUTING.md`: contribution and PR expectations
+- `CODE_OF_CONDUCT.md`: contributor behavior expectations
+- `SECURITY.md`: vulnerability reporting guidance
+- `SUPPORT.md`: where to ask for help
+
 The guidance is split into three layers:
 - `agent/codex-home-agents.md` is the canonical global Codex baseline stored in the repo.
 - `/home/agent/.codex/AGENTS.md` is seeded from that baseline for the container user.
@@ -117,12 +123,17 @@ gh auth setup-git
 gh auth status
 ```
 
+Git identity is not configured automatically. Set it explicitly inside the container before committing. If you prefer GitHub's private noreply email, use your own account-specific noreply address:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "YOUR_GITHUB_ID+YOUR_GITHUB_USERNAME@users.noreply.github.com"
+```
+
 ## Container defaults
 
-On first start, the entrypoint seeds these global git defaults if they are not already configured:
+On first start, the entrypoint seeds these non-identity global git defaults if they are not already configured:
 
-- `user.name=Codex Agent`
-- `user.email=YOUR_GITHUB_ID+YOUR_GITHUB_USERNAME@users.noreply.github.com`
 - `init.defaultBranch=main`
 - `pull.rebase=false`
 
