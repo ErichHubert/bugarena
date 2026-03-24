@@ -23,12 +23,13 @@ In practice, this repo is infrastructure, not an application product. You use it
 
 1. `agent` is the interactive workstation container where Codex, `dotnet`, `node`, and `gh` run.
 2. `capability-broker` is a separate ASP.NET Core service that proxies only explicitly allowed upstream provider routes.
-3. Docker configs provide non-secret broker metadata, and Docker secrets provide the secret bundle.
-4. Agent-mode clients call `CAPABILITY_BROKER_BASE_URL`; the broker validates provider, method, path, and secret availability before forwarding.
+3. `docker-daemon` is an optional test-infrastructure sidecar that provides an isolated Docker engine for Testcontainers-backed integration tests.
+4. Docker configs provide non-secret broker metadata, and Docker secrets provide the secret bundle.
+5. Agent-mode clients call `CAPABILITY_BROKER_BASE_URL`; the broker validates provider, method, path, and secret availability before forwarding.
 
 ## Repository layout
 
-- `compose.agent.yml`: Compose services, named volumes, Docker secret/config mounts, and the shared `agent-net` network.
+- `compose.agent.yml`: Compose services, named volumes, Docker secret/config mounts, the shared `agent-net` network, and the profile-gated `testinfra-net`.
 - `Bugarena.sln`: .NET solution for the capability broker and tests.
 - `Dockerfile.agent`: Image definition with Codex, GitHub CLI, Node.js, and the .NET SDK installed.
 - `Dockerfile.capability-broker`: Multi-stage image for the YARP capability proxy.
@@ -37,6 +38,7 @@ In practice, this repo is infrastructure, not an application product. You use it
 - `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
 - `src/CapabilityBroker/`: ASP.NET Core + YARP reverse proxy service with provider allowlists and secret-backed auth injection.
 - `tests/CapabilityBroker.Tests/`: regression tests for proxying, allowlists, and startup validation.
+- `tests/Bugarena.Platform.Tests/`: standalone platform smoke tests that validate the agent environment, broker reachability, and Testcontainers wiring.
 - `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
 - `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
@@ -75,6 +77,12 @@ docker compose -f compose.agent.yml exec agent bash
 ```
 
 If you only need the workstation, `docker compose -f compose.agent.yml up -d agent` still works.
+
+To start the optional Testcontainers backend for integration tests, enable the `testinfra` profile:
+
+```bash
+docker compose -f compose.agent.yml --profile testinfra up -d --wait
+```
 
 On first use with a new Codex volume, Docker seeds both `/home/agent/.codex/AGENTS.md` and `/home/agent/.codex/config.toml` from the image. On startup, the entrypoint only restores either file if it is missing or empty, so manual edits inside the named volumes are preserved.
 
@@ -143,7 +151,46 @@ dotnet build
 dotnet test
 ```
 
-The agent container receives `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`, so agent-mode clients can target the internal proxy over `agent-net`.
+The agent container always receives `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`.
+
+For Docker-backed test infrastructure, the image also carries internal `BUGARENA_TESTINFRA_*` defaults. Shell sessions export the standard Docker/Testcontainers variables only when `docker-daemon` is actually present:
+
+- `DOCKER_HOST=tcp://docker-daemon:2375`
+- `TESTCONTAINERS_HOST_OVERRIDE=docker-daemon`
+- `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`
+
+That means:
+
+- with `--profile testinfra`, repo tooling inside `agent` can use the isolated `docker-daemon` sidecar
+- without `--profile testinfra`, those standard Docker/Testcontainers variables stay unset, so other repos do not get a broken `DOCKER_HOST`
+
+The broker URL is always available over `agent-net`. Docker-backed integration tests remain separate from `CapabilityBroker` and never use the host Docker socket.
+
+## Validate the agent environment
+
+The `tests/Bugarena.Platform.Tests` project is intentionally outside `Bugarena.sln`. It validates the isolated workstation itself and is meant to run inside the `agent` container, not on the host and not by launching a live Codex session.
+
+For a local validation run from a host checkout:
+
+```bash
+docker compose -f compose.agent.yml --profile testinfra up -d --wait
+docker compose -f compose.agent.yml exec -T agent mkdir -p /workspace/bugarena
+AGENT_ID=$(docker compose -f compose.agent.yml ps -q agent)
+docker cp ./. "${AGENT_ID}:/workspace/bugarena"
+docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln'
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet build Bugarena.sln --no-restore'
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build'
+docker compose -f compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
+```
+
+The platform smoke tests cover:
+
+- the non-interactive toolchain inside `agent` (`dotnet`, `git`, `gh`, and `codex --version`)
+- `CapabilityBroker` readiness through `CAPABILITY_BROKER_BASE_URL`
+- a Testcontainers-backed `postgres:16-alpine` container created through `docker-daemon`
+
+GitHub Actions uses the same model: the runner orchestrates Docker, but the authoritative validation commands run inside `agent`. CI never starts an interactive Codex session and never performs `codex login`.
 
 ## Capability broker
 
@@ -197,6 +244,35 @@ Example:
 }
 ```
 
+Supported auth modes:
+
+- `None`: no auth injection.
+- `BearerToken`: injects `Authorization: <Scheme> <SecretKey>`. Required: `SecretKey`. Optional: `Scheme` (defaults to `Bearer`).
+- `ApiKeyHeader`: injects the secret into a custom request header. Required: `SecretKey`, `HeaderName`.
+- `QueryApiKey`: injects the secret into a query-string parameter. Required: `SecretKey`, `QueryParameterName`.
+
+Example auth fragments:
+
+```json
+{
+  "Auth": {
+    "Type": "ApiKeyHeader",
+    "SecretKey": "anthropic-sandbox",
+    "HeaderName": "x-api-key"
+  }
+}
+```
+
+```json
+{
+  "Auth": {
+    "Type": "QueryApiKey",
+    "SecretKey": "finnhub-sandbox",
+    "QueryParameterName": "token"
+  }
+}
+```
+
 ## Secret handling
 
 Provider secrets are not stored in source, `appsettings`, or Dockerfiles. Compose mounts a Docker secret into the `CapabilityBroker` container and the service reads the secret bundle from the mounted file path.
@@ -237,4 +313,10 @@ Stop the environment without removing volumes:
 
 ```bash
 docker compose -f compose.agent.yml down
+```
+
+If you started the `testinfra` profile, shut it down with:
+
+```bash
+docker compose -f compose.agent.yml --profile testinfra down -v
 ```

@@ -1,0 +1,56 @@
+name: PR Agent Environment
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  agent-environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build agent and capability broker images
+        run: docker compose -f compose.agent.yml build agent capability-broker
+
+      - name: Start Bugarena stack
+        run: docker compose -f compose.agent.yml --profile testinfra up -d --wait
+
+      - name: Copy repository into agent workspace
+        run: |
+          docker compose -f compose.agent.yml exec -T agent mkdir -p /workspace/bugarena
+          AGENT_ID="$(docker compose -f compose.agent.yml ps -q agent)"
+          docker cp ./. "${AGENT_ID}:/workspace/bugarena"
+          docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
+
+      - name: Restore solution inside agent
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln'
+
+      - name: Build solution inside agent
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && dotnet build Bugarena.sln --no-restore'
+
+      - name: Run solution tests inside agent
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build'
+
+      - name: Run platform smoke tests inside agent
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc "cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
+
+      - name: Capture container state and logs on failure
+        if: failure()
+        run: |
+          docker compose -f compose.agent.yml ps
+          docker compose -f compose.agent.yml logs agent capability-broker docker-daemon
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f compose.agent.yml --profile testinfra down -v
