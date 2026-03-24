@@ -10,9 +10,9 @@ Codex contributor container that behaves like an isolated dev workstation.
 ## Rules
 - non-root runtime user
 - named volume for `/workspace`
-- keep the canonical Codex home baseline in `agent/codex-home-baseline.md`
+- keep the canonical Codex home baseline in `agent/codex-home-agents.md`
 - seed `/home/agent/.codex/AGENTS.md` from that baseline
-- keep the canonical default Codex config in `.codex/config.toml`
+- keep the canonical default Codex config in `agent/codex-home-config.toml`
 - seed `/home/agent/.codex/config.toml` from that baseline
 - do not keep a repo-root `AGENTS.md` in the container repo unless the repo itself truly needs overrides
 - only restore the home `AGENTS.md` on startup if it is missing or empty

@@ -33,16 +33,17 @@ In practice, this repo is infrastructure, not an application product. You use it
 - `Dockerfile.agent`: Image definition with Codex, GitHub CLI, Node.js, and the .NET SDK installed.
 - `Dockerfile.capability-broker`: Multi-stage image for the YARP capability proxy.
 - `docker-entrypoint.sh`: Idempotent startup setup for directories, default git config, and shell aliases.
-- `agent/codex-home-baseline.md`: Canonical global Codex instruction source that is copied into the container home.
+- `agent/codex-home-agents.md`: Canonical global Codex instruction source that is copied into the container home.
+- `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
 - `src/CapabilityBroker/`: ASP.NET Core + YARP reverse proxy service with provider allowlists and secret-backed auth injection.
 - `tests/CapabilityBroker.Tests/`: regression tests for proxying, allowlists, and startup validation.
 - `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
 - `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
 The guidance is split into three layers:
-- `agent/codex-home-baseline.md` is the canonical global Codex baseline stored in the repo.
+- `agent/codex-home-agents.md` is the canonical global Codex baseline stored in the repo.
 - `/home/agent/.codex/AGENTS.md` is seeded from that baseline for the container user.
-- `.codex/config.toml` is the canonical default Codex config stored in the repo.
+- `agent/codex-home-config.toml` is the canonical default Codex config stored in the repo.
 - `/home/agent/.codex/config.toml` is seeded from that baseline for the container user.
 - cloned repos may add a repo-root `AGENTS.md` only when they need repo-specific overrides
 - without a repo-root `AGENTS.md`, the global home baseline remains the only instruction file
