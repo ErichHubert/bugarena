@@ -13,7 +13,12 @@ updates:
       - dependencies
       - github-actions
     groups:
-      github-actions:
+      github-actions-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      github-actions-security-updates:
+        applies-to: security-updates
         patterns:
           - "*"
 
@@ -29,7 +34,12 @@ updates:
       - dependencies
       - nuget
     groups:
-      dotnet-packages:
+      dotnet-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      dotnet-security-updates:
+        applies-to: security-updates
         patterns:
           - "*"
 
@@ -45,6 +55,11 @@ updates:
       - dependencies
       - docker
     groups:
-      container-base-images:
+      container-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      container-security-updates:
+        applies-to: security-updates
         patterns:
           - "*"
