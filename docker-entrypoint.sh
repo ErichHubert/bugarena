@@ -36,12 +36,12 @@ if [[ ! -s "$HOME/.codex/AGENTS.md" ]]; then
     if [[ -s "$HOME/.config/AGENTS.md" ]]; then
         mv "$HOME/.config/AGENTS.md" "$HOME/.codex/AGENTS.md"
     else
-        install -m 0644 /opt/codex-agent/codex-home-baseline.md "$HOME/.codex/AGENTS.md"
+        install -m 0644 /opt/codex-agent/codex-home-agents.md "$HOME/.codex/AGENTS.md"
     fi
 fi
 
 if [[ ! -s "$HOME/.codex/config.toml" ]]; then
-    install -m 0644 /opt/codex-agent/config.toml "$HOME/.codex/config.toml"
+    install -m 0644 /opt/codex-agent/codex-home-config.toml "$HOME/.codex/config.toml"
 fi
 
 for tool in node npm dotnet gh; do
