@@ -2,7 +2,7 @@ name: Bugarena - Build and Test
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feature/**", "bugfix/**"]
     paths:
       - ".github/workflows/build-and-test.yml"
       - "Bugarena.sln"
