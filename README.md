@@ -210,7 +210,7 @@ The repository uses a layered GitHub security baseline. Some checks run as GitHu
 Repository-owned workflows:
 
 - `Bugarena - Build and Test`: builds the stack and runs the authoritative containerized validation flow inside `agent`, including a high/critical NuGet audit during restore
-- `Bugarena - Security Scan`: runs Trivy image scans for `agent` and `capability-broker` and publishes an SPDX SBOM artifact
+- `Bugarena - Security Scan`: runs Trivy image scans for `agent`, `capability-broker`, and the Compose-managed `docker-daemon` sidecar image and publishes an SPDX SBOM artifact
 
 Repository settings to enable in GitHub:
 
