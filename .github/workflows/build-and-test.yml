@@ -1,27 +1,48 @@
-name: PR Agent Environment
+name: Bugarena - Build and Test
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
+    paths:
+      - ".github/workflows/build-and-test.yml"
+      - "Bugarena.sln"
+      - "src/**"
+      - "tests/**"
+      - "config/capability-broker/**"
+      - "compose.agent.yml"
+      - "Dockerfile.agent"
+      - "Dockerfile.capability-broker"
+      - "docker-entrypoint.sh"
   pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/build-and-test.yml"
+      - "Bugarena.sln"
+      - "src/**"
+      - "tests/**"
+      - "config/capability-broker/**"
+      - "compose.agent.yml"
+      - "Dockerfile.agent"
+      - "Dockerfile.capability-broker"
+      - "docker-entrypoint.sh"
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   agent-environment:
+    name: Agent Environment - Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Build agent and capability broker images
         run: docker compose -f compose.agent.yml build agent capability-broker
@@ -36,10 +57,23 @@ jobs:
           docker cp ./. "${AGENT_ID}:/workspace/bugarena"
           docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
 
-      - name: Restore solution inside agent
+      - name: Restore solution inside agent with NuGet audit
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln'
+            bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln \
+              -p:NuGetAudit=true \
+              -p:NuGetAuditMode=all \
+              -p:NuGetAuditLevel=high \
+              -warnaserror:NU1903,NU1904'
+
+      - name: Restore platform smoke tests inside agent with NuGet audit
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && dotnet restore tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj \
+              -p:NuGetAudit=true \
+              -p:NuGetAuditMode=all \
+              -p:NuGetAuditLevel=high \
+              -warnaserror:NU1903,NU1904'
 
       - name: Build solution inside agent
         run: |
@@ -49,12 +83,12 @@ jobs:
       - name: Run solution tests inside agent
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build'
+            bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build --no-restore'
 
       - name: Run platform smoke tests inside agent
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc "cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
+            bash -lc 'cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj --no-restore'
 
       - name: Capture container state and logs on failure
         if: failure()

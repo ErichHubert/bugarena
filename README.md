@@ -209,27 +209,28 @@ The repository uses a layered GitHub security baseline. Some checks run as GitHu
 
 Repository-owned workflows:
 
-- `PR Agent Environment`: builds the stack and runs the authoritative containerized validation flow
-- `Dependency Review`: fails pull requests that introduce high or critical runtime dependency risk
-- `NuGet Audit`: fails on high or critical vulnerable NuGet packages, including transitive packages
-- `Container Scan`: uses Trivy to scan repository configuration plus the built `agent` and `capability-broker` images
-- `Secret Scan`: uses Gitleaks to scan the git history for committed secrets
+- `Bugarena - Build and Test`: builds the stack and runs the authoritative containerized validation flow inside `agent`, including a high/critical NuGet audit during restore
+- `Bugarena - Security Scan`: runs Trivy image scans for `agent` and `capability-broker` and publishes an SPDX SBOM artifact
 
 Repository settings to enable in GitHub:
 
-- Dependabot alerts
-- Dependabot security updates
+- the Renovate GitHub App (or an equivalent Renovate runner) for dependency PRs from `renovate.json`
+- Dependabot alerts so GitHub advisory data can surface vulnerable dependencies
 - CodeQL default setup for code scanning
 - Secret scanning and push protection
-- branch protection or rulesets that require the security workflows to pass before merge
+- branch protection or rulesets that require `Bugarena - Build and Test` and `Bugarena - Security Scan` to pass before merge
 
-The checked-in Dependabot configuration in `.github/dependabot.yml` opens grouped weekly update PRs for:
+The checked-in Renovate configuration in `renovate.json` follows the same shape as the `aegis-gateway` baseline: Renovate's `config:best-practices` preset, a weekly Monday morning schedule in `Europe/Berlin`, an enabled dependency dashboard, and grouped non-major updates for:
 
 - GitHub Actions
 - NuGet packages
-- Docker base images
+- Docker images and compose-managed container references
 
-Security updates and normal version updates are grouped separately to keep review noise manageable.
+GitHub Actions are pinned to immutable commit SHAs in workflow files so Renovate can update them without relying on mutable tags.
+
+Major dependency updates are disabled by default in Renovate for this repo so larger upgrade work stays intentional and reviewable.
+
+Normal non-major dependency updates also wait for a 14-day minimum release age before Renovate opens a PR, which reduces the chance of immediately adopting a bad upstream release while still allowing security alert PRs to bypass that wait.
 
 ## Capability broker
 
