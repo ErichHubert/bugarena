@@ -1,8 +1,5 @@
 name: Bugarena - Security Scan
 
-env:
-  TRIVY_VERSION: v0.69.3
-
 on:
   schedule:
     - cron: "30 5 * * 1"
@@ -11,7 +8,6 @@ on:
     paths:
       - ".github/workflows/security-scan.yml"
       - "Bugarena.sln"
-      - "agent/**"
       - "src/CapabilityBroker/**"
       - "Dockerfile.agent"
       - "Dockerfile.capability-broker"
@@ -30,7 +26,7 @@ jobs:
   trivy-agent-image-scan:
     name: Trivy Agent Image Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -39,19 +35,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
-      - name: Build agent image tarball
-        run: |
-          docker buildx build \
-            -f Dockerfile.agent \
-            --output "type=docker,dest=${{ runner.temp }}/bugarena-agent.tar" \
-            .
+      - name: Build agent image
+        run: docker build -f Dockerfile.agent -t bugarena-agent:ci .
 
       - name: Trivy scan agent image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
-          version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/bugarena-agent.tar
+          image-ref: bugarena-agent:ci
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
@@ -61,7 +52,7 @@ jobs:
   trivy-capability-broker-image-scan:
     name: Trivy Capability Broker Image Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -70,19 +61,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
-      - name: Build capability broker image tarball
-        run: |
-          docker buildx build \
-            -f Dockerfile.capability-broker \
-            --output "type=docker,dest=${{ runner.temp }}/bugarena-capability-broker.tar" \
-            .
+      - name: Build capability broker image
+        run: docker build -f Dockerfile.capability-broker -t bugarena-capability-broker:ci .
 
       - name: Trivy scan capability broker image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
-          version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/bugarena-capability-broker.tar
+          image-ref: bugarena-capability-broker:ci
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
@@ -98,28 +84,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
       - name: Resolve docker-daemon image from compose
         id: docker_daemon_image
         run: |
-          image="$(docker compose -f compose.agent.yml --profile testinfra config --format json | jq -r '.services["docker-daemon"].image // empty')"
-          if [ -z "$image" ]; then
-            echo "Failed to resolve docker-daemon image from compose.agent.yml" >&2
-            exit 1
-          fi
-          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "image=$(ruby -ryaml -e 'puts YAML.load_file(\"compose.agent.yml\").dig(\"services\", \"docker-daemon\", \"image\")')" >> "$GITHUB_OUTPUT"
 
-      - name: Pull docker-daemon image for platform
+      - name: Pull docker-daemon image
         run: docker pull "${{ steps.docker_daemon_image.outputs.image }}"
-
-      - name: Save docker-daemon image tarball
-        run: docker save -o "${{ runner.temp }}/docker-daemon.tar" "${{ steps.docker_daemon_image.outputs.image }}"
 
       - name: Trivy scan docker-daemon image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
-          version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/docker-daemon.tar
+          image-ref: ${{ steps.docker_daemon_image.outputs.image }}
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
