@@ -37,6 +37,7 @@ RUN apt-get update \
         lsof \
         make \
         nano \
+        nodejs \
         openssh-client \
         pipx \
         pkg-config \
