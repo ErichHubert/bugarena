@@ -58,13 +58,15 @@ The guidance is split into three layers:
 
 ## Build and start
 
-Build both images:
+1. Build both images from the host shell:
 
 ```bash
 docker compose -f compose.agent.yml build agent capability-broker
 ```
 
-Start the full stack in the background:
+2. Start the stack variant you want from the host shell:
+
+Start the default stack in the background:
 
 ```bash
 docker compose -f compose.agent.yml up -d
@@ -76,18 +78,22 @@ If you want to start the full stack with a real provider secret bundle in one li
 CAPABILITY_BROKER_SECRETS_FILE=.secrets/capability-broker/provider-secrets.json docker compose -f compose.agent.yml up -d --build
 ```
 
-Open a shell inside the container:
+If you only need the workstation, this still works:
 
 ```bash
-docker compose -f compose.agent.yml exec agent bash
+docker compose -f compose.agent.yml up -d agent
 ```
 
-If you only need the workstation, `docker compose -f compose.agent.yml up -d agent` still works.
-
-To start the optional Testcontainers backend for integration tests, enable the `testinfra` profile:
+If you want the optional Testcontainers backend for integration tests, enable the `testinfra` profile before opening a shell in `agent`:
 
 ```bash
 docker compose -f compose.agent.yml --profile testinfra up -d --wait
+```
+
+3. After the services you need are running, open a shell inside the container:
+
+```bash
+docker compose -f compose.agent.yml exec agent bash
 ```
 
 On first use with a new Codex volume, Docker seeds both `/home/agent/.codex/AGENTS.md` and `/home/agent/.codex/config.toml` from the image. On startup, the entrypoint only restores either file if it is missing or empty, so manual edits inside the named volumes are preserved.
