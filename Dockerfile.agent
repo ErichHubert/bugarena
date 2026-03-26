@@ -1,12 +1,14 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:478b9038d187e5b5c29bfa8173ded5d29e864b5ad06102a12106380ee01e2e49
+FROM ubuntu:noble@sha256:186072bba1b2f436cbb91ef2567abca677337cfc786c86e107d25b7072feef0c
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG MISE_VERSION=v2025.11.11
+ARG CODEX_VERSION=0.116.0
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+    && apt-get install -y --no-install-recommends ca-certificates curl gpg xz-utils \
     && install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-        | dd of=/etc/apt/keyrings/githubcli-archive-keyring.gpg status=none \
+        | gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
         > /etc/apt/sources.list.d/github-cli.list \
@@ -18,43 +20,64 @@ RUN apt-get update \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         bash \
+        build-essential \
+        cmake \
         fd-find \
+        file \
         gh \
         git \
         jq \
         less \
+        libbz2-dev \
+        libffi-dev \
+        liblzma-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libssl-dev \
         lsof \
+        make \
         nano \
         nodejs \
+        openssh-client \
+        pipx \
+        pkg-config \
         procps \
         python3 \
-        python3-pip \
+        python3-venv \
         ripgrep \
+        sqlite3 \
         tree \
         unzip \
         wget \
         zip \
-    && npm install --global @openai/codex \
+        zlib1g-dev \
+    && curl -fsSL https://mise.run \
+        | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_VERSION=${MISE_VERSION} sh \
+    && corepack enable \
+    && npm install --global @openai/codex@${CODEX_VERSION} \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && useradd --create-home --shell /bin/bash agent \
     && install -m 0755 -d /opt/codex-agent \
-    && install -d -o agent -g agent /workspace \
-    && install -d -o agent -g agent /home/agent/.codex /home/agent/.cache /home/agent/.config \
-    && touch /workspace/.volume-root /home/agent/.codex/.keep /home/agent/.cache/.keep /home/agent/.config/.keep \
-    && chown agent:agent /workspace/.volume-root /home/agent/.codex/.keep /home/agent/.cache/.keep /home/agent/.config/.keep \
+    && install -m 0755 -d -o agent -g agent \
+        /workspace \
+        /home/agent/.cache \
+        /home/agent/.codex \
+        /home/agent/.config \
+        /home/agent/.local \
+        /home/agent/.local/bin \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY --chmod=0644 agent/bugarena-testinfra.sh /etc/profile.d/bugarena-testinfra.sh
+COPY --chmod=0644 agent/bugarena-shell-env.sh /etc/profile.d/bugarena-shell-env.sh
 COPY --chmod=0644 agent/codex-home-agents.md /opt/codex-agent/codex-home-agents.md
 COPY --chmod=0644 agent/codex-home-config.toml /opt/codex-agent/codex-home-config.toml
-COPY --chown=agent:agent --chmod=0644 agent/codex-home-agents.md /home/agent/.codex/AGENTS.md
-COPY --chown=agent:agent --chmod=0644 agent/codex-home-config.toml /home/agent/.codex/config.toml
 
 USER agent
-ENV BASH_ENV=/etc/profile.d/bugarena-testinfra.sh
+ENV BASH_ENV=/etc/profile.d/bugarena-shell-env.sh
 ENV HOME=/home/agent
+ENV MISE_TRUSTED_CONFIG_PATHS=/workspace
 WORKDIR /workspace
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

@@ -8,11 +8,13 @@ on:
       - "Bugarena.sln"
       - "src/**"
       - "tests/**"
+      - "agent/**"
       - "config/capability-broker/**"
       - "compose.agent.yml"
       - "Dockerfile.agent"
       - "Dockerfile.capability-broker"
       - "docker-entrypoint.sh"
+      - "mise.toml"
   pull_request:
     branches: ["main"]
     paths:
@@ -20,11 +22,13 @@ on:
       - "Bugarena.sln"
       - "src/**"
       - "tests/**"
+      - "agent/**"
       - "config/capability-broker/**"
       - "compose.agent.yml"
       - "Dockerfile.agent"
       - "Dockerfile.capability-broker"
       - "docker-entrypoint.sh"
+      - "mise.toml"
   workflow_dispatch:
 
 concurrency:
@@ -57,10 +61,15 @@ jobs:
           docker cp ./. "${AGENT_ID}:/workspace/bugarena"
           docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
 
+      - name: Install repo runtimes inside agent
+        run: |
+          docker compose -f compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && mise install'
+
       - name: Restore solution inside agent with NuGet audit
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln \
+            bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore Bugarena.sln \
               -p:NuGetAudit=true \
               -p:NuGetAuditMode=all \
               -p:NuGetAuditLevel=high \
@@ -69,7 +78,7 @@ jobs:
       - name: Restore platform smoke tests inside agent with NuGet audit
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet restore tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj \
+            bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj \
               -p:NuGetAudit=true \
               -p:NuGetAuditMode=all \
               -p:NuGetAuditLevel=high \
@@ -78,17 +87,17 @@ jobs:
       - name: Build solution inside agent
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet build Bugarena.sln --no-restore'
+            bash -lc 'cd /workspace/bugarena && mise exec -- dotnet build Bugarena.sln --no-restore'
 
       - name: Run solution tests inside agent
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build --no-restore'
+            bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test Bugarena.sln --no-build --no-restore'
 
       - name: Run platform smoke tests inside agent
         run: |
           docker compose -f compose.agent.yml exec -T agent \
-            bash -lc 'cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj --no-restore'
+            bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj --no-restore'
 
       - name: Capture container state and logs on failure
         if: failure()

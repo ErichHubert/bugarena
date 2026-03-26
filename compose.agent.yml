@@ -16,9 +16,7 @@ services:
     restart: unless-stopped
     volumes:
       - agent_workspace:/workspace
-      - agent_codex:/home/agent/.codex
-      - agent_cache:/home/agent/.cache
-      - agent_config:/home/agent/.config
+      - agent_home:/home/agent
     networks:
       - agent-net
       - testinfra-net
@@ -49,7 +47,10 @@ services:
       - agent-net
 
   docker-daemon:
-    image: docker:29.3.0-dind@sha256:1ba18449911d01f477a3fc104123c85d677addc60701b14b3fcb5381f9c4a537
+    build:
+      context: .
+      dockerfile: Dockerfile.docker-daemon
+    image: bugarena-docker-daemon:testinfra
     privileged: true
     profiles:
       - testinfra
@@ -82,9 +83,7 @@ secrets:
 
 volumes:
   agent_workspace:
-  agent_codex:
-  agent_cache:
-  agent_config:
+  agent_home:
   docker_daemon_data:
 
 networks:

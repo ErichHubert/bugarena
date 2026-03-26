@@ -7,10 +7,10 @@ namespace Bugarena.Platform.Tests;
 public sealed class AgentEnvironmentSmokeTests
 {
     [Theory]
-    [InlineData("dotnet", "--version")]
     [InlineData("git", "--version")]
     [InlineData("gh", "--version")]
     [InlineData("codex", "--version")]
+    [InlineData("mise", "--version")]
     public async Task ToolchainCommandsAreExecutableAsync(string fileName, string arguments)
     {
         var result = await RunProcessAsync(fileName, arguments);
