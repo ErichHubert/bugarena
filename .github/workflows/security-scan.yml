@@ -7,11 +7,13 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/security-scan.yml"
-      - ".trivyignore.yaml"
+      - ".github/trivy/agent-ignore.yaml"
+      - ".github/trivy/docker-daemon-ignore.yaml"
       - "Bugarena.sln"
       - "src/CapabilityBroker/**"
       - "Dockerfile.agent"
       - "Dockerfile.capability-broker"
+      - "Dockerfile.docker-daemon"
       - "compose.agent.yml"
       - "docker-entrypoint.sh"
   workflow_dispatch:
@@ -48,7 +50,7 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          trivyignores: .trivyignore.yaml
+          trivyignores: .github/trivy/agent-ignore.yaml
           exit-code: "1"
 
   trivy-capability-broker-image-scan:
@@ -89,28 +91,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
-      - name: Resolve docker-daemon image from compose
-        id: docker_daemon_image
-        run: |
-          image="$(docker compose -f compose.agent.yml --profile testinfra config --format json | jq -r '.services["docker-daemon"].image // empty')"
-          if [ -z "$image" ]; then
-            echo "Failed to resolve docker-daemon image from compose.agent.yml" >&2
-            exit 1
-          fi
-          echo "image=$image" >> "$GITHUB_OUTPUT"
-
-      - name: Pull docker-daemon image
-        run: docker pull "${{ steps.docker_daemon_image.outputs.image }}"
+      - name: Build docker-daemon image
+        run: docker build -f Dockerfile.docker-daemon -t bugarena-docker-daemon:ci .
 
       - name: Trivy scan docker-daemon image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           scan-type: image
-          image-ref: ${{ steps.docker_daemon_image.outputs.image }}
+          image-ref: bugarena-docker-daemon:ci
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .github/trivy/docker-daemon-ignore.yaml
           exit-code: "1"
 
   sbom:

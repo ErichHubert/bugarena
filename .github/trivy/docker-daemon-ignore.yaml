@@ -1,0 +1,13 @@
+vulnerabilities:
+  - id: CVE-2026-22184
+    expired_at: 2026-06-30
+    statement: Accepted temporary exception for the pinned docker-daemon testinfra sidecar; revisit when Dockerfile.docker-daemon is updated.
+  - id: CVE-2026-24051
+    expired_at: 2026-06-30
+    statement: Accepted temporary exception for the pinned docker-daemon testinfra sidecar; revisit when Dockerfile.docker-daemon is updated.
+  - id: CVE-2026-33186
+    expired_at: 2026-06-30
+    statement: Accepted temporary exception for the pinned docker-daemon testinfra sidecar; revisit when Dockerfile.docker-daemon is updated.
+  - id: CVE-2026-25679
+    expired_at: 2026-06-30
+    statement: Accepted temporary exception for the pinned docker-daemon testinfra sidecar; revisit when Dockerfile.docker-daemon is updated.
