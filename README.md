@@ -240,7 +240,7 @@ Normal non-major dependency updates also wait for a 14-day minimum release age b
 
 ## Capability broker
 
-`CapabilityBroker` is an allowlist-based outbound proxy for API-key-backed providers. It is built with ASP.NET Core and YARP and is intended for agent-mode traffic only. Provider secrets stay in the proxy service; callers send normal requests to:
+`CapabilityBroker` is an allowlist-based outbound proxy for secret-backed external APIs. It is built with ASP.NET Core and YARP and is intended for agent-mode traffic only. The primary use case is domain and data APIs such as market data, ticketing, CRM, or geocoding services. LLM APIs can also fit this pattern, but they are not the main design target. Provider secrets stay in the proxy service; callers send normal requests to:
 
 ```text
 /providers/{provider}/{allowed-upstream-path}
@@ -252,10 +252,10 @@ The service validates:
 - allowed path prefix
 - required secret availability
 
-This keeps the trust boundary narrow: the agent can make domain-level provider calls, but it does not get raw provider keys and it cannot turn the broker into a general-purpose internet proxy.
+This keeps the trust boundary narrow: the agent can make domain-specific API calls, but it does not get raw provider keys and it cannot turn the broker into a general-purpose internet proxy.
 
 Broker scope:
-- yes: outbound HTTP for allowlisted API-key-backed providers
+- yes: outbound HTTP for allowlisted secret-backed external APIs
 - yes: server-side auth injection using the configured secret bundle
 - no: arbitrary URL forwarding
 - no: database, filesystem, git, or CLI brokering
@@ -269,20 +269,20 @@ Health endpoints:
 
 Non-secret provider metadata lives in `config/capability-broker/providers.json`. The checked-in default is empty so the compose stack stays safe to start. Add providers by editing that file.
 
-Example:
+Example data API configuration:
 
 ```json
 {
   "CapabilityBroker": {
     "RequestTimeoutSeconds": 100,
     "Providers": {
-      "openai": {
-        "BaseUrl": "https://api.openai.com",
-        "AllowedMethods": ["POST"],
-        "AllowedPathPrefixes": ["/v1/responses", "/v1/embeddings"],
+      "market-data": {
+        "BaseUrl": "https://api.example-marketdata.com",
+        "AllowedMethods": ["GET"],
+        "AllowedPathPrefixes": ["/v1/quotes", "/v1/news"],
         "Auth": {
           "Type": "BearerToken",
-          "SecretKey": "openai-sandbox"
+          "SecretKey": "market-data-sandbox"
         }
       }
     }
@@ -297,13 +297,13 @@ Supported auth modes:
 - `ApiKeyHeader`: injects the secret into a custom request header. Required: `SecretKey`, `HeaderName`.
 - `QueryApiKey`: injects the secret into a query-string parameter. Required: `SecretKey`, `QueryParameterName`.
 
-Example auth fragments:
+Example auth fragments for non-LLM APIs:
 
 ```json
 {
   "Auth": {
     "Type": "ApiKeyHeader",
-    "SecretKey": "anthropic-sandbox",
+    "SecretKey": "geo-data-sandbox",
     "HeaderName": "x-api-key"
   }
 }
@@ -313,8 +313,8 @@ Example auth fragments:
 {
   "Auth": {
     "Type": "QueryApiKey",
-    "SecretKey": "finnhub-sandbox",
-    "QueryParameterName": "token"
+    "SecretKey": "exchange-rates-sandbox",
+    "QueryParameterName": "api_key"
   }
 }
 ```
@@ -336,7 +336,9 @@ mkdir -p .secrets/capability-broker
 cat > .secrets/capability-broker/provider-secrets.json <<'EOF'
 {
   "Secrets": {
-    "openai-sandbox": "replace-with-sandbox-key"
+    "market-data-sandbox": "replace-with-sandbox-key",
+    "geo-data-sandbox": "replace-with-sandbox-key",
+    "exchange-rates-sandbox": "replace-with-sandbox-key"
   }
 }
 EOF
