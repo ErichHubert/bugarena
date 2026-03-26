@@ -1,0 +1,31 @@
+vulnerabilities:
+  - id: CVE-2025-64756
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-26996
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-27903
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-27904
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-23745
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-23950
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-24842
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-26960
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-29786
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
+  - id: CVE-2026-31802
+    expired_at: 2026-06-30
+    statement: Upstream blocker in the pinned @openai/codex baseline package; revisit when Codex is upgraded.
