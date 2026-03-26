@@ -47,7 +47,10 @@ services:
       - agent-net
 
   docker-daemon:
-    image: docker:29.3.1-dind@sha256:4d90f1f6c400315c2dba96d3ec93c01e64198395cbba04f79d12adce4f737029
+    build:
+      context: .
+      dockerfile: Dockerfile.docker-daemon
+    image: bugarena-docker-daemon:testinfra
     privileged: true
     profiles:
       - testinfra
