@@ -28,24 +28,13 @@ permissions:
 
 jobs:
   trivy-agent-image-scan:
-    name: Trivy Agent Image Scan (${{ matrix.platform }})
+    name: Trivy Agent Image Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            platform_id: amd64
-          - platform: linux/arm64
-            platform_id: arm64
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -53,9 +42,8 @@ jobs:
       - name: Build agent image tarball
         run: |
           docker buildx build \
-            --platform "${{ matrix.platform }}" \
             -f Dockerfile.agent \
-            --output "type=docker,dest=${{ runner.temp }}/bugarena-agent-${{ matrix.platform_id }}.tar" \
+            --output "type=docker,dest=${{ runner.temp }}/bugarena-agent.tar" \
             .
 
       - name: Trivy scan agent image
@@ -63,7 +51,7 @@ jobs:
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/bugarena-agent-${{ matrix.platform_id }}.tar
+          input: ${{ runner.temp }}/bugarena-agent.tar
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
@@ -71,24 +59,13 @@ jobs:
           exit-code: "1"
 
   trivy-capability-broker-image-scan:
-    name: Trivy Capability Broker Image Scan (${{ matrix.platform }})
+    name: Trivy Capability Broker Image Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            platform_id: amd64
-          - platform: linux/arm64
-            platform_id: arm64
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -96,9 +73,8 @@ jobs:
       - name: Build capability broker image tarball
         run: |
           docker buildx build \
-            --platform "${{ matrix.platform }}" \
             -f Dockerfile.capability-broker \
-            --output "type=docker,dest=${{ runner.temp }}/bugarena-capability-broker-${{ matrix.platform_id }}.tar" \
+            --output "type=docker,dest=${{ runner.temp }}/bugarena-capability-broker.tar" \
             .
 
       - name: Trivy scan capability broker image
@@ -106,7 +82,7 @@ jobs:
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/bugarena-capability-broker-${{ matrix.platform_id }}.tar
+          input: ${{ runner.temp }}/bugarena-capability-broker.tar
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
@@ -114,17 +90,9 @@ jobs:
           exit-code: "1"
 
   trivy-docker-daemon-image-scan:
-    name: Trivy Docker Daemon Image Scan (${{ matrix.platform }})
+    name: Trivy Docker Daemon Image Scan
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            platform_id: amd64
-          - platform: linux/arm64
-            platform_id: arm64
 
     steps:
       - name: Checkout repository
@@ -141,17 +109,17 @@ jobs:
           echo "image=$image" >> "$GITHUB_OUTPUT"
 
       - name: Pull docker-daemon image for platform
-        run: docker pull --platform "${{ matrix.platform }}" "${{ steps.docker_daemon_image.outputs.image }}"
+        run: docker pull "${{ steps.docker_daemon_image.outputs.image }}"
 
       - name: Save docker-daemon image tarball
-        run: docker save -o "${{ runner.temp }}/docker-daemon-${{ matrix.platform_id }}.tar" "${{ steps.docker_daemon_image.outputs.image }}"
+        run: docker save -o "${{ runner.temp }}/docker-daemon.tar" "${{ steps.docker_daemon_image.outputs.image }}"
 
       - name: Trivy scan docker-daemon image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: image
-          input: ${{ runner.temp }}/docker-daemon-${{ matrix.platform_id }}.tar
+          input: ${{ runner.temp }}/docker-daemon.tar
           format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH
