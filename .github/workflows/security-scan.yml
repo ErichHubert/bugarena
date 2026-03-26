@@ -90,7 +90,12 @@ jobs:
       - name: Resolve docker-daemon image from compose
         id: docker_daemon_image
         run: |
-          echo "image=$(ruby -ryaml -e 'puts YAML.load_file(\"compose.agent.yml\").dig(\"services\", \"docker-daemon\", \"image\")')" >> "$GITHUB_OUTPUT"
+          image="$(docker compose -f compose.agent.yml --profile testinfra config --format json | jq -r '.services["docker-daemon"].image // empty')"
+          if [ -z "$image" ]; then
+            echo "Failed to resolve docker-daemon image from compose.agent.yml" >&2
+            exit 1
+          fi
+          echo "image=$image" >> "$GITHUB_OUTPUT"
 
       - name: Pull docker-daemon image
         run: docker pull "${{ steps.docker_daemon_image.outputs.image }}"

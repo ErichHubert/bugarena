@@ -2,6 +2,7 @@ FROM ubuntu:noble@sha256:186072bba1b2f436cbb91ef2567abca677337cfc786c86e107d25b7
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG MISE_VERSION=v2025.11.11
+ARG CODEX_VERSION=0.116.0
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl gpg xz-utils \
@@ -53,7 +54,7 @@ RUN apt-get update \
     && curl -fsSL https://mise.run \
         | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_VERSION=${MISE_VERSION} sh \
     && corepack enable \
-    && npm install --global @openai/codex \
+    && npm install --global @openai/codex@${CODEX_VERSION} \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && useradd --create-home --shell /bin/bash agent \
     && install -m 0755 -d /opt/codex-agent \
