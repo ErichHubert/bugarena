@@ -10,5 +10,5 @@ Support material for the global Codex home baseline or optional repo-root overri
 Included:
 - `dotnet-provider-pattern-b.md`
 - `capability-broker-v1.md`
-- `agent-container-stack.md`
+- `agent-container-stack.md` for a lean baseline image plus `mise` runtime bootstrap
 - `implementation-checklist.md`

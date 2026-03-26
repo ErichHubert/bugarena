@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/security-scan.yml"
       - "Bugarena.sln"
+      - "agent/**"
       - "src/CapabilityBroker/**"
       - "Dockerfile.agent"
       - "Dockerfile.capability-broker"

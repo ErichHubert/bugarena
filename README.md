@@ -10,7 +10,7 @@ Requires Docker with the Compose plugin on the host that builds and runs the con
 - a sidecar `CapabilityBroker` that owns provider secrets and injects auth server-side
 - a reference implementation of the repo rule: human dev can talk to providers directly, agent-mode traffic goes through a broker
 
-In practice, this repo is infrastructure, not an application product. You use it to boot an isolated Codex-capable workspace plus a tightly scoped outbound proxy for API-key-backed providers.
+In practice, this repo is infrastructure, not an application product. You use it to boot an isolated Codex-capable workspace with a lean baseline toolchain, repo-managed runtimes through `mise`, and a tightly scoped outbound proxy for secret-backed providers.
 
 ## Why it exists
 
@@ -21,7 +21,7 @@ In practice, this repo is infrastructure, not an application product. You use it
 
 ## Architecture at a glance
 
-1. `agent` is the interactive workstation container where Codex, `dotnet`, `node`, and `gh` run.
+1. `agent` is the interactive workstation container where Codex, `mise`, system `node`, `python3`, and `gh` run.
 2. `capability-broker` is a separate ASP.NET Core service that proxies only explicitly allowed upstream provider routes.
 3. `docker-daemon` is an optional test-infrastructure sidecar that provides an isolated Docker engine for Testcontainers-backed integration tests.
 4. Docker configs provide non-secret broker metadata, and Docker secrets provide the secret bundle.
@@ -29,16 +29,17 @@ In practice, this repo is infrastructure, not an application product. You use it
 
 ## Repository layout
 
-- `compose.agent.yml`: Compose services, named volumes, Docker secret/config mounts, the shared `agent-net` network, and the profile-gated `testinfra-net`.
+- `compose.agent.yml`: Compose services, simplified named volumes, Docker secret/config mounts, the shared `agent-net` network, and the profile-gated `testinfra-net`.
 - `Bugarena.sln`: .NET solution for the capability broker and tests.
-- `Dockerfile.agent`: Image definition with Codex, GitHub CLI, Node.js, and the .NET SDK installed.
+- `Dockerfile.agent`: Lean Ubuntu Noble-based agent image with Codex, GitHub CLI, system Node.js, Python, `mise`, and baseline build utilities.
 - `Dockerfile.capability-broker`: Multi-stage image for the YARP capability proxy.
 - `docker-entrypoint.sh`: Idempotent startup setup for directories, default git config, and shell aliases.
 - `agent/codex-home-agents.md`: Canonical global Codex instruction source that is copied into the container home.
 - `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
+- `mise.toml`: Repo-local runtime declaration for `mise`-managed toolchains used by CI and local validation.
 - `src/CapabilityBroker/`: ASP.NET Core + YARP reverse proxy service with provider allowlists and secret-backed auth injection.
 - `tests/CapabilityBroker.Tests/`: regression tests for proxying, allowlists, and startup validation.
-- `tests/Bugarena.Platform.Tests/`: standalone platform smoke tests that validate the agent environment, broker reachability, and Testcontainers wiring.
+- `tests/Bugarena.Platform.Tests/`: standalone platform smoke tests that validate the baseline agent environment, broker reachability, and Testcontainers wiring.
 - `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
 - `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
@@ -96,7 +97,7 @@ docker compose -f compose.agent.yml --profile testinfra up -d --wait
 docker compose -f compose.agent.yml exec agent bash
 ```
 
-On first use with a new Codex volume, Docker seeds both `/home/agent/.codex/AGENTS.md` and `/home/agent/.codex/config.toml` from the image. On startup, the entrypoint only restores either file if it is missing or empty, so manual edits inside the named volumes are preserved.
+On first use with a new `agent_home` volume, the entrypoint restores `/home/agent/.codex/AGENTS.md` and `/home/agent/.codex/config.toml` from the canonical copies in `/opt/codex-agent` when either file is missing or empty. Manual edits inside `/home/agent` are preserved across container restarts.
 
 The default Codex config baked into the image is:
 
@@ -143,7 +144,7 @@ On first start, the entrypoint seeds these non-identity global git defaults if t
 - `init.defaultBranch=main`
 - `pull.rebase=false`
 
-It also adds an `ll` shell alias and prints the detected versions for `node`, `npm`, `dotnet`, and `gh`.
+It also adds an `ll` shell alias and prints the detected versions for `codex`, `gh`, `mise`, `node`, and `python3`.
 
 ## Clone and work in `/workspace`
 
@@ -153,19 +154,32 @@ Clone repositories inside the container so work stays in the named workspace vol
 cd /workspace
 gh repo clone OWNER/REPO
 cd /workspace/REPO
+mise install
 codex
 ```
 
 If the cloned repository has its own root `AGENTS.md`, treat it as a repo-specific overlay on top of `/home/agent/.codex/AGENTS.md`.
 
-If you customize `/home/agent/.codex/AGENTS.md` or `/home/agent/.codex/config.toml` inside the named volumes, those changes persist across container restarts. Rebuilds update the image baselines, not existing volumes.
+Repositories cloned under `/workspace` are trusted for `mise` by default, so `mise install` does not require an extra trust step inside the container.
 
-Standard .NET workflows run normally from there:
+If the cloned repository declares runtimes through `mise.toml` or compatible version files such as `.tool-versions`, `.nvmrc`, `.python-version`, or `global.json`, install them with `mise install` before building or testing.
+
+If you customize anything under `/home/agent`, including `/home/agent/.codex`, auth state, caches, user-installed tools, or `mise` data, those changes persist across container restarts. Rebuilds update the image baselines, not existing volumes.
+
+This repo declares `.NET 10` in `mise.toml`. In an interactive shell, the normal .NET commands work after `mise install`:
 
 ```bash
 dotnet restore
 dotnet build
 dotnet test
+```
+
+For scripted or non-interactive commands, prefer the explicit form:
+
+```bash
+mise exec -- dotnet restore
+mise exec -- dotnet build
+mise exec -- dotnet test
 ```
 
 The agent container always receives `CAPABILITY_BROKER_BASE_URL=http://capability-broker:8080`.
@@ -195,19 +209,20 @@ docker compose -f compose.agent.yml exec -T agent mkdir -p /workspace/bugarena
 AGENT_ID=$(docker compose -f compose.agent.yml ps -q agent)
 docker cp ./. "${AGENT_ID}:/workspace/bugarena"
 docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet restore Bugarena.sln'
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet build Bugarena.sln --no-restore'
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && dotnet test Bugarena.sln --no-build'
-docker compose -f compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise install'
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore Bugarena.sln'
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet build Bugarena.sln --no-restore'
+docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test Bugarena.sln --no-build'
+docker compose -f compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && mise exec -- dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
 ```
 
 The platform smoke tests cover:
 
-- the non-interactive toolchain inside `agent` (`dotnet`, `git`, `gh`, and `codex --version`)
+- the non-interactive baseline toolchain inside `agent` (`git`, `gh`, `codex`, and `mise`)
 - `CapabilityBroker` readiness through `CAPABILITY_BROKER_BASE_URL`
 - a Testcontainers-backed `postgres:16-alpine` container created through `docker-daemon`
 
-GitHub Actions uses the same model: the runner orchestrates Docker, but the authoritative validation commands run inside `agent`. CI never starts an interactive Codex session and never performs `codex login`.
+GitHub Actions uses the same model: the runner orchestrates Docker, but the authoritative validation commands run inside `agent`. CI bootstraps this repo's `.NET` runtime with `mise` before restore/build/test. CI never starts an interactive Codex session and never performs `codex login`.
 
 ## Security automation
 
@@ -215,7 +230,7 @@ The repository uses a layered GitHub security baseline. Some checks run as GitHu
 
 Repository-owned workflows:
 
-- `Bugarena - Build and Test`: builds the stack and runs the authoritative containerized validation flow inside `agent`, including a high/critical NuGet audit during restore
+- `Bugarena - Build and Test`: builds the stack and runs the authoritative containerized validation flow inside `agent`, bootstrapping `.NET` through `mise` and including a high/critical NuGet audit during restore
 - `Bugarena - Security Scan`: runs Trivy image scans for `agent`, `capability-broker`, and the Compose-managed `docker-daemon` sidecar image and publishes an SPDX SBOM artifact
 
 Repository settings to enable in GitHub:
@@ -352,10 +367,9 @@ The bundle key must match the provider `Auth.SecretKey` value.
 ## Persistence
 
 - Repositories and other working files persist in `/workspace` via the `agent_workspace` named volume.
-- Codex auth and config persist in `/home/agent/.codex` via the `agent_codex` named volume.
-- GitHub CLI auth and other config persist in `/home/agent/.config` via the `agent_config` named volume.
-- Cache data persists in `/home/agent/.cache` via the `agent_cache` named volume.
-- Global git config is written in `/home/agent/.gitconfig`, so the entrypoint re-seeds its defaults when a new container is created unless you extend the image or mount additional home-directory state.
+- All agent home state persists in `/home/agent` via the `agent_home` named volume.
+- That home volume includes Codex config, auth state, shell config, caches, user-installed tools, git config, SSH material, and `mise` runtime/cache data.
+- Global git config is written in `/home/agent/.gitconfig`, so the entrypoint only seeds its defaults when a new home volume is missing that config.
 
 Stop the environment without removing volumes:
 

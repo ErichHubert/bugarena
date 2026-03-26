@@ -16,9 +16,7 @@ services:
     restart: unless-stopped
     volumes:
       - agent_workspace:/workspace
-      - agent_codex:/home/agent/.codex
-      - agent_cache:/home/agent/.cache
-      - agent_config:/home/agent/.config
+      - agent_home:/home/agent
     networks:
       - agent-net
       - testinfra-net
@@ -82,9 +80,7 @@ secrets:
 
 volumes:
   agent_workspace:
-  agent_codex:
-  agent_cache:
-  agent_config:
+  agent_home:
   docker_daemon_data:
 
 networks:

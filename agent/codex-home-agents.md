@@ -8,6 +8,7 @@ Style: concise; technical; low fluff.
 - Workspace: `/workspace`.
 - Treat the container as an isolated dev workstation.
 - Clone repos into `/workspace`.
+- Look for repo runtime declarations such as `mise.toml`, `.tool-versions`, `global.json`, `.nvmrc`, and `.python-version` before building or testing.
 - Prefer deterministic, reviewable changes over clever one-offs.
 
 ## Git / PR Workflow
@@ -23,6 +24,7 @@ Style: concise; technical; low fluff.
 - no host source mount
 - no host Docker socket
 - no privileged mode
+- Repos under `/workspace` are trusted for `mise` config by default.
 
 ## Test Infrastructure
 - If `DOCKER_HOST` is set in a shell session, assume the isolated `docker-daemon` Testcontainers backend is available.
@@ -32,13 +34,16 @@ Style: concise; technical; low fluff.
 
 ## Tools / Secrets
 - Use repo-native tools and package managers.
+- Use `mise` to install repo-declared runtimes before build/test when those runtime files are present.
+- Prefer `mise exec -- <command>` for scripted or non-interactive commands.
+- Do not reach for OS package managers when a runtime or version requirement can be satisfied through `mise`.
 - Never commit or print secrets.
 - Treat provider credentials as sandbox/test unless explicitly stated otherwise.
 - Keep provider secrets out of source, Dockerfiles, prompts, and app code on agent-mode paths.
 
 ## CapabilityBroker
 - If `CAPABILITY_BROKER_BASE_URL` is set, assume a `CapabilityBroker` is available for any repo in this container.
-- For agent-mode outbound calls to API-key-backed providers, prefer broker routes: `${CAPABILITY_BROKER_BASE_URL}/providers/{provider}/{allowed-upstream-path}`.
+- For agent-mode outbound calls to secret-backed external APIs, prefer broker routes: `${CAPABILITY_BROKER_BASE_URL}/providers/{provider}/{allowed-upstream-path}`.
 - If `CAPABILITY_BROKER_BASE_URL` is not set, do not assume broker access exists.
 
 ## External Provider Rule
@@ -48,7 +53,7 @@ Style: concise; technical; low fluff.
 - Keep application code environment-agnostic where possible; vary wiring, not business logic.
 
 ## CapabilityBroker Scope
-- Only route outbound HTTP/API calls for providers that require API keys.
+- Only route outbound HTTP/API calls for secret-backed external APIs.
 - Do not put database access, Testcontainers, local CLI tooling, git, or filesystem behind `CapabilityBroker`.
 - Keep broker access allowlist-based: provider, path, method, sandbox/test secrets.
 - No open universal proxying.
@@ -62,6 +67,7 @@ Style: concise; technical; low fluff.
 ## Build / Tooling
 - Use repo-native tools and package managers.
 - Do not swap package managers or runtime conventions without reason.
+- In interactive shells, run `mise install` once per repo when runtime declarations exist, then use the repo-native commands.
 - Prefer explicit configuration and boring defaults.
 
 ## Documentation
