@@ -105,8 +105,12 @@ The default Codex config baked into the image is:
 model = "gpt-5.4"
 personality = "pragmatic"
 approval_policy = "never"
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
 ```
+
+This image defaults to `danger-full-access` because the Bugarena container is intended to be the outer sandbox boundary. That avoids nested `bubblewrap` user-namespace requirements that commonly fail on hardened Ubuntu hosts and VMs.
+
+If your container host allows unprivileged user namespaces and you explicitly want Codex's inner sandbox, override the config to `sandbox_mode = "workspace-write"`.
 
 ## Authenticate tools
 
