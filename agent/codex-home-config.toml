@@ -1,4 +1,4 @@
 model = "gpt-5.4"
 personality = "pragmatic"
 approval_policy = "never"
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
