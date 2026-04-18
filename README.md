@@ -32,13 +32,13 @@ In practice, this repo is infrastructure, not an application product. You use it
 - `Bugarena.sln`: .NET solution for the capability broker and tests.
 - `infra/docker/`: `compose.agent.yml`, the Dockerfiles, and `docker-entrypoint.sh` for the agent workstation, capability broker, and optional `docker-daemon` sidecar.
 - `agent/codex-home-agents.md`: Canonical global Codex instruction source that is copied into the container home.
+- `agent/skills/`: Curated Codex skills that are bundled into the agent image as shared admin skills.
 - `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
 - `mise.toml`: Repo-local runtime declaration for `mise`-managed toolchains used by CI and local validation.
 - `src/CapabilityBroker/`: ASP.NET Core + YARP reverse proxy service with provider allowlists and secret-backed auth injection.
 - `tests/CapabilityBroker.Tests/`: regression tests for proxying, allowlists, and startup validation.
 - `tests/Bugarena.Platform.Tests/`: standalone platform smoke tests that validate the baseline agent environment, broker reachability, and Testcontainers wiring.
 - `config/capability-broker/`: repo-tracked non-secret provider config and placeholder secret bundle shape.
-- `agent/templates/`: Reusable templates for provider integrations, broker policies, and implementation handoffs.
 
 Project docs:
 - `CONTRIBUTING.md`: contribution and PR expectations
@@ -46,13 +46,15 @@ Project docs:
 - `SECURITY.md`: vulnerability reporting guidance
 - `SUPPORT.md`: where to ask for help
 
-The guidance is split into three layers:
+The guidance is split into four layers:
 - `agent/codex-home-agents.md` is the canonical global Codex baseline stored in the repo.
 - `/home/agent/.codex/AGENTS.md` is seeded from that baseline for the container user.
+- `agent/skills/` contains the source for curated Bugarena skills.
+- `/etc/codex/skills/` is the admin skill path inside the container, populated from `agent/skills/`.
 - `agent/codex-home-config.toml` is the canonical default Codex config stored in the repo.
 - `/home/agent/.codex/config.toml` is seeded from that baseline for the container user.
-- cloned repos may add a repo-root `AGENTS.md` only when they need repo-specific overrides
-- without a repo-root `AGENTS.md`, the global home baseline remains the only instruction file
+- cloned repos may add a repo-root `AGENTS.md` when they need repo-specific overrides
+- cloned repos may add `.agents/skills/` when they have repeatable repo-scoped workflows
 
 ## Build and start
 
@@ -163,6 +165,7 @@ codex
 
 If the cloned repository has its own root `AGENTS.md`, treat it as a repo-specific overlay on top of `/home/agent/.codex/AGENTS.md`.
 
+If the cloned repository has `.agents/skills/`, Codex can use those repo-scoped skills in addition to the bundled admin skills under `/etc/codex/skills/`.
 Repositories cloned under `/workspace` are trusted for `mise` by default, so `mise install` does not require an extra trust step inside the container.
 
 If the cloned repository declares runtimes through `mise.toml` or compatible version files such as `.tool-versions`, `.nvmrc`, `.python-version`, or `global.json`, install them with `mise install` before building or testing.

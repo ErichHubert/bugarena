@@ -59,6 +59,7 @@ RUN apt-get update \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && useradd --create-home --shell /bin/bash agent \
     && install -m 0755 -d /opt/codex-agent \
+    && install -m 0755 -d /etc/codex/skills \
     && install -m 0755 -d -o agent -g agent \
         /workspace \
         /home/agent/.cache \
@@ -74,6 +75,7 @@ COPY --chmod=0644 agent/bugarena-testinfra.sh /etc/profile.d/bugarena-testinfra.
 COPY --chmod=0644 agent/bugarena-shell-env.sh /etc/profile.d/bugarena-shell-env.sh
 COPY --chmod=0644 agent/codex-home-agents.md /opt/codex-agent/codex-home-agents.md
 COPY --chmod=0644 agent/codex-home-config.toml /opt/codex-agent/codex-home-config.toml
+COPY agent/skills/ /etc/codex/skills/
 
 USER agent
 ENV BASH_ENV=/etc/profile.d/bugarena-shell-env.sh

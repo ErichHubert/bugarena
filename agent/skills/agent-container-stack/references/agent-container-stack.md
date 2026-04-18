@@ -15,7 +15,8 @@ Codex contributor container that behaves like an isolated dev workstation.
 - seed `/home/agent/.codex/AGENTS.md` from that baseline
 - keep the canonical default Codex config in `agent/codex-home-config.toml`
 - seed `/home/agent/.codex/config.toml` from that baseline
-- do not keep a repo-root `AGENTS.md` in the container repo unless the repo itself truly needs overrides
+- add a repo-root `AGENTS.md` when the repo needs repo-specific overrides or needs to point Codex at repo-scoped skills
+- keep repeatable repo workflows in `.agents/skills`
 - only restore the home `AGENTS.md` on startup if it is missing or empty
 - only restore the home `config.toml` on startup if it is missing or empty
 - allow cloned repos to provide repo-root `AGENTS.md` only for repo-specific overrides
@@ -35,8 +36,9 @@ Codex contributor container that behaves like an isolated dev workstation.
 4. run `gh auth login` or `gh auth status`
 5. run `gh repo clone ...` into `/workspace`
 6. if the repo declares runtimes through `mise.toml` or compatible version files, run `mise install`
-7. read repo-root `AGENTS.md` inside the cloned repo only if that repo provides repo-specific overrides
-8. branch, implement, test, commit, and `gh pr create`
+7. read repo-root `AGENTS.md` inside the cloned repo when that repo provides repo-specific overrides
+8. rely on `.agents/skills` for repeatable repo-scoped workflows when present
+9. branch, implement, test, commit, and `gh pr create`
 
 ## Entrypoint
 - do: set git defaults, create dirs, activate `mise` in shells, print environment summary, exec command
