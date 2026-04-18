@@ -2,6 +2,13 @@
 
 Use for handoff notes and the PR body.
 
+## Done
+- requirement met
+- self-reviewed
+- validation run, with results
+- docs/supporting artifacts updated as needed
+- gaps or follow-up called out
+
 ## Summary
 - what changed
 - why
@@ -16,7 +23,10 @@ Use for handoff notes and the PR body.
 - gaps
 
 ## Docs
-- docs updated
+- docs updated, or `not needed`
+
+## Risks / Follow-up
+- known gaps, limitations, or deferred work
 
 ## PR
 - meaningful title
