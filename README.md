@@ -29,11 +29,8 @@ In practice, this repo is infrastructure, not an application product. You use it
 
 ## Repository layout
 
-- `compose.agent.yml`: Compose services, simplified named volumes, Docker secret/config mounts, the shared `agent-net` network, and the profile-gated `testinfra-net`.
 - `Bugarena.sln`: .NET solution for the capability broker and tests.
-- `Dockerfile.agent`: Lean Ubuntu Noble-based agent image with Codex, GitHub CLI, system Node.js, Python, `mise`, and baseline build utilities.
-- `Dockerfile.capability-broker`: Multi-stage image for the YARP capability proxy.
-- `docker-entrypoint.sh`: Idempotent startup setup for directories, default git config, and shell aliases.
+- `infra/docker/`: `compose.agent.yml`, the Dockerfiles, and `docker-entrypoint.sh` for the agent workstation, capability broker, and optional `docker-daemon` sidecar.
 - `agent/codex-home-agents.md`: Canonical global Codex instruction source that is copied into the container home.
 - `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
 - `mise.toml`: Repo-local runtime declaration for `mise`-managed toolchains used by CI and local validation.
@@ -59,10 +56,12 @@ The guidance is split into three layers:
 
 ## Build and start
 
+The commands below assume your current working directory is the repository root.
+
 1. Build both images from the host shell:
 
 ```bash
-docker compose -f compose.agent.yml build agent capability-broker
+docker compose -f infra/docker/compose.agent.yml build agent capability-broker
 ```
 
 2. Start the stack variant you want from the host shell:
@@ -70,31 +69,31 @@ docker compose -f compose.agent.yml build agent capability-broker
 Start the default stack in the background:
 
 ```bash
-docker compose -f compose.agent.yml up -d
+docker compose -f infra/docker/compose.agent.yml up -d
 ```
 
 If you want to start the full stack with a real provider secret bundle in one line:
 
 ```bash
-CAPABILITY_BROKER_SECRETS_FILE=.secrets/capability-broker/provider-secrets.json docker compose -f compose.agent.yml up -d --build
+CAPABILITY_BROKER_SECRETS_FILE="$PWD/.secrets/capability-broker/provider-secrets.json" docker compose -f infra/docker/compose.agent.yml up -d --build
 ```
 
 If you only need the workstation, this still works:
 
 ```bash
-docker compose -f compose.agent.yml up -d agent
+docker compose -f infra/docker/compose.agent.yml up -d agent
 ```
 
 If you want the optional Testcontainers backend for integration tests, enable the `testinfra` profile before opening a shell in `agent`:
 
 ```bash
-docker compose -f compose.agent.yml --profile testinfra up -d --wait
+docker compose -f infra/docker/compose.agent.yml --profile testinfra up -d --wait
 ```
 
 3. After the services you need are running, open a shell inside the container:
 
 ```bash
-docker compose -f compose.agent.yml exec agent bash
+docker compose -f infra/docker/compose.agent.yml exec agent bash
 ```
 
 On first use with a new `agent_home` volume, the entrypoint restores `/home/agent/.codex/AGENTS.md` and `/home/agent/.codex/config.toml` from the canonical copies in `/opt/codex-agent` when either file is missing or empty. Manual edits inside `/home/agent` are preserved across container restarts.
@@ -208,16 +207,16 @@ The `tests/Bugarena.Platform.Tests` project is intentionally outside `Bugarena.s
 For a local validation run from a host checkout:
 
 ```bash
-docker compose -f compose.agent.yml --profile testinfra up -d --wait
-docker compose -f compose.agent.yml exec -T agent mkdir -p /workspace/bugarena
-AGENT_ID=$(docker compose -f compose.agent.yml ps -q agent)
+docker compose -f infra/docker/compose.agent.yml --profile testinfra up -d --wait
+docker compose -f infra/docker/compose.agent.yml exec -T agent mkdir -p /workspace/bugarena
+AGENT_ID=$(docker compose -f infra/docker/compose.agent.yml ps -q agent)
 docker cp ./. "${AGENT_ID}:/workspace/bugarena"
-docker compose -f compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise install'
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore Bugarena.sln'
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet build Bugarena.sln --no-restore'
-docker compose -f compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test Bugarena.sln --no-build'
-docker compose -f compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && mise exec -- dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
+docker compose -f infra/docker/compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise install'
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore Bugarena.sln'
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet build Bugarena.sln --no-restore'
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test Bugarena.sln --no-build'
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && mise exec -- dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
 ```
 
 The platform smoke tests cover:
@@ -362,8 +361,8 @@ cat > .secrets/capability-broker/provider-secrets.json <<'EOF'
 }
 EOF
 
-CAPABILITY_BROKER_SECRETS_FILE=.secrets/capability-broker/provider-secrets.json \
-  docker compose -f compose.agent.yml up -d capability-broker
+CAPABILITY_BROKER_SECRETS_FILE="$PWD/.secrets/capability-broker/provider-secrets.json" \
+  docker compose -f infra/docker/compose.agent.yml up -d capability-broker
 ```
 
 The bundle key must match the provider `Auth.SecretKey` value.
@@ -378,11 +377,11 @@ The bundle key must match the provider `Auth.SecretKey` value.
 Stop the environment without removing volumes:
 
 ```bash
-docker compose -f compose.agent.yml down
+docker compose -f infra/docker/compose.agent.yml down
 ```
 
 If you started the `testinfra` profile, shut it down with:
 
 ```bash
-docker compose -f compose.agent.yml --profile testinfra down -v
+docker compose -f infra/docker/compose.agent.yml --profile testinfra down -v
 ```

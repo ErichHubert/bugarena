@@ -1,8 +1,10 @@
+name: bugarena
+
 services:
   agent:
     build:
-      context: .
-      dockerfile: Dockerfile.agent
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.agent
     environment:
       CAPABILITY_BROKER_BASE_URL: http://capability-broker:8080
       BUGARENA_TESTINFRA_SERVICE_NAME: docker-daemon
@@ -23,8 +25,8 @@ services:
 
   capability-broker:
     build:
-      context: .
-      dockerfile: Dockerfile.capability-broker
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.capability-broker
     environment:
       ASPNETCORE_URLS: http://+:8080
       CapabilityBroker__ProviderConfigPath: /run/configs/capability-broker.providers.json
@@ -48,8 +50,8 @@ services:
 
   docker-daemon:
     build:
-      context: .
-      dockerfile: Dockerfile.docker-daemon
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.docker-daemon
     image: bugarena-docker-daemon:testinfra
     privileged: true
     profiles:
@@ -75,11 +77,11 @@ services:
 
 configs:
   capability_broker_config:
-    file: ./config/capability-broker/providers.json
+    file: ../../config/capability-broker/providers.json
 
 secrets:
   capability_broker_provider_secrets:
-    file: ${CAPABILITY_BROKER_SECRETS_FILE:-./config/capability-broker/provider-secrets.placeholder.json}
+    file: ${CAPABILITY_BROKER_SECRETS_FILE:-../../config/capability-broker/provider-secrets.placeholder.json}
 
 volumes:
   agent_workspace:
