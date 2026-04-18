@@ -54,6 +54,8 @@ jobs:
           AGENT_ID="$(docker compose -f infra/docker/compose.agent.yml ps -q agent)"
           docker cp ./. "${AGENT_ID}:/workspace/bugarena"
           docker compose -f infra/docker/compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
+          docker compose -f infra/docker/compose.agent.yml exec -T agent \
+            bash -lc 'cd /workspace/bugarena && find . -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +'
 
       - name: Install repo runtimes inside agent
         run: |
