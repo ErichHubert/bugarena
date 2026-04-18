@@ -1,0 +1,4 @@
+interface:
+  display_name: "Capability Broker"
+  short_description: "Design allowlisted secret-backed API proxy work"
+  default_prompt: "Use $capability-broker to design or implement a narrow CapabilityBroker provider integration."

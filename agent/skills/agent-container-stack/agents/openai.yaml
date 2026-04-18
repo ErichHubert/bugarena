@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Container Stack"
+  short_description: "Design Codex workstation container repos"
+  default_prompt: "Use $agent-container-stack to design or refine a Codex-oriented agent container stack."

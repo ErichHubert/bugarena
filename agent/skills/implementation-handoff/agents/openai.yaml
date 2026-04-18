@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implementation Handoff"
+  short_description: "Structure completion notes, PR text, and checks"
+  default_prompt: "Use $implementation-handoff to prepare a concise implementation handoff with validation and follow-up notes."

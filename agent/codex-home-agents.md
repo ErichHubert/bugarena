@@ -72,6 +72,11 @@ Style: concise; technical; low fluff.
 - In interactive shells, run `mise install` once per repo when runtime declarations exist, then use the repo-native commands.
 - Prefer explicit configuration and boring defaults.
 
+## Bundled Skills
+- Shared Bugarena skills may be installed under `/etc/codex/skills`.
+- Prefer bundled skills when relevant, especially `capability-broker`, `dotnet-provider-integration`, `implementation-handoff`, and `agent-container-stack`.
+- Repo-local `.agents/skills` from cloned repositories can supplement these container-level skills.
+
 ## Documentation
 - Update docs briefly for new patterns or architecture changes.
 - Keep docs tight: intent, constraints, usage, validation.

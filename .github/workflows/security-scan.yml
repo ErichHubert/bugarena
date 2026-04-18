@@ -11,11 +11,7 @@ on:
       - ".github/trivy/docker-daemon-ignore.yaml"
       - "Bugarena.sln"
       - "src/CapabilityBroker/**"
-      - "Dockerfile.agent"
-      - "Dockerfile.capability-broker"
-      - "Dockerfile.docker-daemon"
-      - "compose.agent.yml"
-      - "docker-entrypoint.sh"
+      - "infra/docker/**"
   workflow_dispatch:
 
 concurrency:
@@ -39,7 +35,7 @@ jobs:
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Build agent image
-        run: docker build -f Dockerfile.agent -t bugarena-agent:ci .
+        run: docker build -f infra/docker/Dockerfile.agent -t bugarena-agent:ci .
 
       - name: Trivy scan agent image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
@@ -66,7 +62,7 @@ jobs:
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Build capability broker image
-        run: docker build -f Dockerfile.capability-broker -t bugarena-capability-broker:ci .
+        run: docker build -f infra/docker/Dockerfile.capability-broker -t bugarena-capability-broker:ci .
 
       - name: Trivy scan capability broker image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
@@ -92,7 +88,7 @@ jobs:
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Build docker-daemon image
-        run: docker build -f Dockerfile.docker-daemon -t bugarena-docker-daemon:ci .
+        run: docker build -f infra/docker/Dockerfile.docker-daemon -t bugarena-docker-daemon:ci .
 
       - name: Trivy scan docker-daemon image
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0

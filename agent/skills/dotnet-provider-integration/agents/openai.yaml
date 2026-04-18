@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dotnet Provider Integration"
+  short_description: "Implement broker-aware external provider clients"
+  default_prompt: "Use $dotnet-provider-integration to add or update a .NET external provider client with local and broker wiring."
