@@ -17,6 +17,8 @@ Style: concise; technical; low fluff.
 - Prefer small, reviewable commits.
 - Never push to `main` or `master` directly.
 - Never rewrite history unless explicitly asked.
+- Do not stop at implementation. A task is done only when the requirement is met, the change is self-reviewed and validated, and affected docs or supporting artifacts are updated so the PR is ready for review.
+- If any part is missing, say exactly what is unverified or deferred.
 - Before handoff: provide changed files, validation results, and open risks.
 
 ## Environment
