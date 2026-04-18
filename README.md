@@ -215,12 +215,15 @@ docker compose -f infra/docker/compose.agent.yml exec -T agent mkdir -p /workspa
 AGENT_ID=$(docker compose -f infra/docker/compose.agent.yml ps -q agent)
 docker cp ./. "${AGENT_ID}:/workspace/bugarena"
 docker compose -f infra/docker/compose.agent.yml exec -T --user root agent chown -R agent:agent /workspace/bugarena
+docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && find . -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +'
 docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise install'
 docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet restore Bugarena.sln'
 docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet build Bugarena.sln --no-restore'
 docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc 'cd /workspace/bugarena && mise exec -- dotnet test Bugarena.sln --no-build'
 docker compose -f infra/docker/compose.agent.yml exec -T agent bash -lc "cd /workspace/bugarena && mise exec -- dotnet test tests/Bugarena.Platform.Tests/Bugarena.Platform.Tests.csproj"
 ```
+
+The cleanup step removes host-generated `bin/` and `obj/` artifacts before the container rebuilds the repo. That avoids platform-specific test adapter collisions such as duplicate xUnit runner discovery warnings.
 
 The platform smoke tests cover:
 
