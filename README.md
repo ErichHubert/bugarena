@@ -30,7 +30,7 @@ In practice, this repo is infrastructure, not an application product. You use it
 ## Repository layout
 
 - `Bugarena.sln`: .NET solution for the capability broker and tests.
-- `infra/docker/`: `compose.agent.yml`, the Dockerfiles, and `docker-entrypoint.sh` for the agent workstation, capability broker, and optional `docker-daemon` sidecar.
+- `infra/docker/`: `compose.agent.yml`, `compose.released.yml`, the Dockerfiles, and `docker-entrypoint.sh` for the agent workstation, capability broker, and optional `docker-daemon` sidecar.
 - `agent/codex-home-agents.md`: Canonical global Codex instruction source that is copied into the container home.
 - `agent/skills/`: Curated Codex skills that are bundled into the agent image as shared admin skills.
 - `agent/codex-home-config.toml`: Canonical default Codex config source that is copied into the container home.
@@ -83,7 +83,31 @@ Maintainer note for the first successful release publish:
 - verify each package is linked to `ErichHubert/bugarena` and inherits repository access
 - if a package name already exists and is not linked to this repository, connect it manually before rerunning the release workflow
 
-## Build and start
+## Quick start with released images
+
+If you want the fastest path to a working stack, use the published GHCR images instead of building from source. The checked-in compose file for that path is:
+
+- `infra/docker/compose.released.yml`
+
+For repeatable setups, prefer an exact release tag over `latest`:
+
+```bash
+export BUGARENA_RELEASE_TAG=0.1.0
+docker compose -f infra/docker/compose.released.yml pull
+docker compose -f infra/docker/compose.released.yml up -d
+docker compose -f infra/docker/compose.released.yml exec agent bash
+```
+
+If you want to start the released stack with a real provider secret bundle:
+
+```bash
+CAPABILITY_BROKER_SECRETS_FILE="$PWD/.secrets/capability-broker/provider-secrets.json" \
+  docker compose -f infra/docker/compose.released.yml up -d
+```
+
+The released-image quick start intentionally covers the default workstation + broker stack only. If you need to build locally, customize the images, or use the optional `docker-daemon` Testcontainers sidecar, use the source-build compose flow below.
+
+## Build from source
 
 The commands below assume your current working directory is the repository root.
 

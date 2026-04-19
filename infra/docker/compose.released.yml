@@ -1,0 +1,60 @@
+name: bugarena
+
+services:
+  agent:
+    image: ghcr.io/erichhubert/bugarena-agent:${BUGARENA_RELEASE_TAG:-latest}
+    environment:
+      CAPABILITY_BROKER_BASE_URL: http://capability-broker:8080
+      BUGARENA_TESTINFRA_SERVICE_NAME: docker-daemon
+      BUGARENA_TESTINFRA_DOCKER_HOST: tcp://docker-daemon:2375
+      BUGARENA_TESTINFRA_TESTCONTAINERS_HOST_OVERRIDE: docker-daemon
+      BUGARENA_TESTINFRA_TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    restart: unless-stopped
+    volumes:
+      - agent_workspace:/workspace
+      - agent_home:/home/agent
+    networks:
+      - agent-net
+
+  capability-broker:
+    image: ghcr.io/erichhubert/bugarena-capability-broker:${BUGARENA_RELEASE_TAG:-latest}
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      CapabilityBroker__ProviderConfigPath: /run/configs/capability-broker.providers.json
+      CapabilityBroker__SecretBundlePath: /run/secrets/capability-broker-provider-secrets
+    init: true
+    restart: unless-stopped
+    configs:
+      - source: capability_broker_config
+        target: /run/configs/capability-broker.providers.json
+    secrets:
+      - source: capability_broker_provider_secrets
+        target: capability-broker-provider-secrets
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - agent-net
+
+configs:
+  capability_broker_config:
+    file: ../../config/capability-broker/providers.json
+
+secrets:
+  capability_broker_provider_secrets:
+    file: ${CAPABILITY_BROKER_SECRETS_FILE:-../../config/capability-broker/provider-secrets.placeholder.json}
+
+volumes:
+  agent_workspace:
+  agent_home:
+
+networks:
+  agent-net:
+    driver: bridge
