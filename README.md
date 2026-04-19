@@ -112,7 +112,7 @@ export BUGARENA_RELEASE_TAG=0.1.0
 docker compose -f infra/docker/compose.released.yml --profile testinfra up -d --wait
 ```
 
-The released-image quick start now matches the full stack shape. `agent` and `capability-broker` are pulled from GHCR, while the unpublished `docker-daemon` helper is still built locally from `infra/docker/Dockerfile.docker-daemon`. Use the source-build compose flow below when you need to customize the published images themselves.
+The released-image quick start now matches the full stack shape. `agent` and `capability-broker` are pulled from GHCR, while the optional `docker-daemon` helper uses the same pinned upstream `docker:29.3.1-dind` image that the source-build Dockerfile wraps. Use the source-build compose flow below when you need to customize the published images themselves.
 
 ## Build from source
 
