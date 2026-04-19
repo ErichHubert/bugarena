@@ -5,6 +5,7 @@ on:
     branches: ["main", "feature/**", "bugfix/**", "codex/**"]
     paths:
       - ".github/workflows/build-and-test.yml"
+      - ".github/workflows/publish-images.yml"
       - "Bugarena.sln"
       - "src/**"
       - "tests/**"
@@ -16,6 +17,7 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/build-and-test.yml"
+      - ".github/workflows/publish-images.yml"
       - "Bugarena.sln"
       - "src/**"
       - "tests/**"

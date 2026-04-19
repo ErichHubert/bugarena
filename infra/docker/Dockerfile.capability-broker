@@ -14,17 +14,25 @@ RUN dotnet publish src/CapabilityBroker/CapabilityBroker.csproj \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble@sha256:c433886fdfe33c6427966a412328867b2be9a64f540a105d08943c2dc6fba39b AS final
 
+LABEL org.opencontainers.image.source="https://github.com/ErichHubert/bugarena" \
+      org.opencontainers.image.title="Bugarena Capability Broker" \
+      org.opencontainers.image.description="Allowlist-based ASP.NET Core reverse proxy for secret-backed provider integrations." \
+      org.opencontainers.image.licenses="MIT"
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
+    && useradd --system --create-home --home-dir /home/broker --shell /usr/sbin/nologin broker \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY --from=build /app/publish/ ./
+COPY --from=build --chown=broker:broker /app/publish/ ./
 
 EXPOSE 8080
 
 ENV ASPNETCORE_URLS=http://+:8080
+
+USER broker
 
 ENTRYPOINT ["dotnet", "CapabilityBroker.dll"]

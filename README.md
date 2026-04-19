@@ -56,6 +56,33 @@ The guidance is split into four layers:
 - cloned repos may add a repo-root `AGENTS.md` when they need repo-specific overrides
 - cloned repos may add `.agents/skills/` when they have repeatable repo-scoped workflows
 
+## Released images
+
+Published stable GitHub Releases push these public images to GHCR:
+
+- `ghcr.io/erichhubert/bugarena-capability-broker`
+- `ghcr.io/erichhubert/bugarena-agent`
+
+Release publishing is release-only:
+
+- only published stable releases tagged as `vX.Y.Z` push images
+- each stable release publishes `X.Y.Z`, `X.Y`, and `latest`
+- draft releases, prereleases, branch pushes, and pull requests do not publish images
+- `docker-daemon` remains an internal helper image and is not published
+
+Minimal pull examples:
+
+```bash
+docker pull ghcr.io/erichhubert/bugarena-capability-broker:0.1.0
+docker pull ghcr.io/erichhubert/bugarena-agent:latest
+```
+
+Maintainer note for the first successful release publish:
+
+- open each GHCR package page and set visibility to `Public`
+- verify each package is linked to `ErichHubert/bugarena` and inherits repository access
+- if a package name already exists and is not linked to this repository, connect it manually before rerunning the release workflow
+
 ## Build and start
 
 The commands below assume your current working directory is the repository root.
@@ -241,6 +268,7 @@ Repository-owned workflows:
 
 - `Bugarena - Build and Test`: builds the stack and runs the authoritative containerized validation flow inside `agent`, bootstrapping `.NET` through `mise` and including a high/critical NuGet audit during restore
 - `Bugarena - Security Scan`: runs Trivy image scans for `agent`, `capability-broker`, and the repo-built `docker-daemon` sidecar image and publishes an SPDX SBOM artifact
+- `Bugarena - Publish Images`: publishes release-only `agent` and `capability-broker` multi-arch images to GHCR from stable GitHub Releases
 
 Repository settings to enable in GitHub:
 

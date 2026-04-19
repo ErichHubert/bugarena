@@ -7,6 +7,7 @@ on:
     branches: ["main"]
     paths:
       - ".github/workflows/security-scan.yml"
+      - ".github/workflows/publish-images.yml"
       - ".github/trivy/agent-ignore.yaml"
       - ".github/trivy/docker-daemon-ignore.yaml"
       - "Bugarena.sln"
