@@ -1,5 +1,10 @@
 FROM ubuntu:noble@sha256:84e77dee7d1bc93fb029a45e3c6cb9d8aa4831ccfcc7103d36e876938d28895b
 
+LABEL org.opencontainers.image.source="https://github.com/ErichHubert/bugarena" \
+      org.opencontainers.image.title="Bugarena Agent" \
+      org.opencontainers.image.description="Codex-capable Bugarena workstation image with mise and baseline developer tooling." \
+      org.opencontainers.image.licenses="MIT"
+
 ARG DEBIAN_FRONTEND=noninteractive
 ARG MISE_VERSION=v2025.11.11
 ARG CODEX_VERSION=0.116.0
