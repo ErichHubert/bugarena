@@ -105,7 +105,14 @@ CAPABILITY_BROKER_SECRETS_FILE="$PWD/.secrets/capability-broker/provider-secrets
   docker compose -f infra/docker/compose.released.yml up -d
 ```
 
-The released-image quick start intentionally covers the default workstation + broker stack only. If you need to build locally, customize the images, or use the optional `docker-daemon` Testcontainers sidecar, use the source-build compose flow below.
+If you want the same optional Testcontainers backend as the source-build setup, enable the `testinfra` profile:
+
+```bash
+export BUGARENA_RELEASE_TAG=0.1.0
+docker compose -f infra/docker/compose.released.yml --profile testinfra up -d --wait
+```
+
+The released-image quick start now matches the full stack shape. `agent` and `capability-broker` are pulled from GHCR, while the unpublished `docker-daemon` helper is still built locally from `infra/docker/Dockerfile.docker-daemon`. Use the source-build compose flow below when you need to customize the published images themselves.
 
 ## Build from source
 
