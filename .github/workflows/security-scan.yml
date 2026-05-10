@@ -39,7 +39,7 @@ jobs:
         run: docker build -f infra/docker/Dockerfile.agent -t bugarena-agent:ci .
 
       - name: Trivy scan agent image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
           image-ref: bugarena-agent:ci
@@ -66,7 +66,7 @@ jobs:
         run: docker build -f infra/docker/Dockerfile.capability-broker -t bugarena-capability-broker:ci .
 
       - name: Trivy scan capability broker image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
           image-ref: bugarena-capability-broker:ci
@@ -92,7 +92,7 @@ jobs:
         run: docker build -f infra/docker/Dockerfile.docker-daemon -t bugarena-docker-daemon:ci .
 
       - name: Trivy scan docker-daemon image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
           image-ref: bugarena-docker-daemon:ci
