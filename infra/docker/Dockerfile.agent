@@ -59,10 +59,10 @@ RUN apt-get update \
         zlib1g-dev \
     && if [ "${MISE_VERSION}" = "latest" ]; then \
         curl -fsSL https://mise.run \
-            | MISE_INSTALL_PATH=/usr/local/bin/mise sh; \
+            | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_INSTALL_FROM_GITHUB=1 sh; \
     else \
         curl -fsSL https://mise.run \
-            | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_VERSION="${MISE_VERSION}" sh; \
+            | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_INSTALL_FROM_GITHUB=1 MISE_VERSION="${MISE_VERSION}" sh; \
     fi \
     && corepack enable \
     && npm install --global "@openai/codex@${CODEX_VERSION}" \
