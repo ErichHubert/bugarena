@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.source="https://github.com/ErichHubert/bugarena" 
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG MISE_VERSION=v2025.11.11
-ARG CODEX_VERSION=0.116.0
+ARG CODEX_VERSION=latest
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl gpg xz-utils \
@@ -57,10 +57,15 @@ RUN apt-get update \
         wget \
         zip \
         zlib1g-dev \
-    && curl -fsSL https://mise.run \
-        | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_VERSION=${MISE_VERSION} sh \
+    && if [ "${MISE_VERSION}" = "latest" ]; then \
+        curl -fsSL https://mise.run \
+            | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_INSTALL_FROM_GITHUB=1 sh; \
+    else \
+        curl -fsSL https://mise.run \
+            | MISE_INSTALL_PATH=/usr/local/bin/mise MISE_INSTALL_FROM_GITHUB=1 MISE_VERSION="${MISE_VERSION}" sh; \
+    fi \
     && corepack enable \
-    && npm install --global @openai/codex@${CODEX_VERSION} \
+    && npm install --global "@openai/codex@${CODEX_VERSION}" \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && useradd --create-home --shell /bin/bash agent \
     && install -m 0755 -d /opt/codex-agent \
