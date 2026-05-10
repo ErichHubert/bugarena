@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source="https://github.com/ErichHubert/bugarena" 
       org.opencontainers.image.licenses="MIT"
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG MISE_VERSION=latest
+ARG MISE_VERSION=v2025.11.11
 ARG CODEX_VERSION=latest
 
 RUN apt-get update \
